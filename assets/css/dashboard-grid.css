@@ -1,0 +1,329 @@
+/**
+ * Dashboard Grid System
+ * Estilos personalizados para GridStack y widgets
+ */
+
+/* ========================================
+   GRID CONTAINER
+   ======================================== */
+
+.dashboard-container {
+    padding: 1.5rem 0;
+}
+
+.grid-stack {
+    background: transparent;
+}
+
+.grid-stack-item {
+    /* Espaciado entre widgets */
+}
+
+.grid-stack-item-content {
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Hover effect en widgets */
+.grid-stack-item-content:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   WIDGET CARD
+   ======================================== */
+
+.widget-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+}
+
+.widget-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.widget-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.widget-body {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+}
+
+/* Scrollbar personalizado para widget body */
+.widget-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.widget-body::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.widget-body::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 3px;
+}
+
+.widget-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5);
+}
+
+/* ========================================
+   MODO EDICIÓN
+   ======================================== */
+
+/* Handle de arrastre */
+.drag-handle {
+    cursor: move;
+    color: #64748b;
+    margin-right: 0.5rem;
+}
+
+.drag-handle:hover {
+    color: #3b82f6;
+}
+
+/* Botones de acción en modo edición */
+.widget-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.widget-actions .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Placeholder cuando se arrastra */
+.grid-stack-placeholder > .placeholder-content {
+    background: rgba(59, 130, 246, 0.2);
+    border: 2px dashed #3b82f6;
+    border-radius: 12px;
+}
+
+/* Widget siendo arrastrado */
+.grid-stack-item.ui-draggable-dragging {
+    opacity: 0.8;
+    z-index: 1000;
+}
+
+.grid-stack-item.ui-draggable-dragging .grid-stack-item-content {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    border-color: #3b82f6;
+}
+
+/* Handles de resize */
+.ui-resizable-handle {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.grid-stack-item:hover .ui-resizable-handle {
+    opacity: 1;
+}
+
+.ui-resizable-se {
+    background: #3b82f6;
+    border-radius: 50%;
+    width: 12px !important;
+    height: 12px !important;
+    right: 4px !important;
+    bottom: 4px !important;
+}
+
+/* ========================================
+   DASHBOARD VACÍO
+   ======================================== */
+
+.empty-dashboard {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-dashboard-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-dashboard-icon i {
+    font-size: 4rem;
+    color: #3b82f6;
+}
+
+.empty-dashboard-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+
+.empty-dashboard-subtitle {
+    color: #94a3b8;
+    margin-bottom: 2rem;
+}
+
+/* ========================================
+   BOTÓN AGREGAR GRÁFICO
+   ======================================== */
+
+.add-widget-container {
+    padding: 2rem;
+    text-align: center;
+}
+
+.btn-add-widget {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    border: 2px dashed rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.05);
+    color: #3b82f6;
+    transition: all 0.3s;
+}
+
+.btn-add-widget:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   CONTROLES DE EDICIÓN (HEADER)
+   ======================================== */
+
+.edit-mode-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.edit-mode-badge {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-mode-badge i {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+/* Tablets */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem 0;
+    }
+    
+    .widget-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .widget-title {
+        font-size: 0.875rem;
+    }
+    
+    .kpi-value {
+        font-size: 2rem !important;
+    }
+}
+
+/* Móviles */
+@media (max-width: 576px) {
+    .grid-stack {
+        /* GridStack automáticamente colapsa a 1 columna en móvil */
+    }
+    
+    .widget-actions .btn {
+        padding: 0.25rem 0.375rem;
+    }
+    
+    .widget-actions .btn i {
+        font-size: 0.875rem;
+    }
+    
+    .kpi-icon {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 24px !important;
+    }
+    
+    .kpi-value {
+        font-size: 1.75rem !important;
+    }
+}
+
+/* ========================================
+   ANIMACIONES DE CARGA
+   ======================================== */
+
+.widget-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #64748b;
+}
+
+.widget-loading i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   UTILIDADES
+   ======================================== */
+
+.grid-stack-item.grid-stack-static {
+    /* Widgets estáticos en modo vista */
+    cursor: default;
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}

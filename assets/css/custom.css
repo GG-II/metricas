@@ -1,0 +1,504 @@
+/**
+ * Estilos personalizados
+ * Dashboard de Métricas IT
+ */
+
+/* ==========================================
+   VARIABLES Y COLORES
+   ========================================== */
+:root {
+    --area-color: #3b82f6;
+    --area-software: #3b82f6;
+    --area-infra: #10b981;
+    --area-soporte: #f59e0b;
+    --area-ciber: #ef4444;
+}
+
+/* ==========================================
+   LAYOUT GENERAL
+   ========================================== */
+body {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.container-xl {
+    max-width: 1400px;
+}
+
+/* ==========================================
+   HEADER / NAVBAR
+   ========================================== */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.brand-logo {
+    width: 40px;
+    height: 40px;
+    background: #3b82f6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    background: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+}
+
+/* ==========================================
+   NAVEGACIÓN POR ÁREAS
+   ========================================== */
+.area-tabs {
+    background: rgba(15, 23, 42, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.area-tab {
+    color: #94a3b8;
+    padding: 16px 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    position: relative;
+}
+
+.area-tab:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.area-tab.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.area-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--area-color, #3b82f6);
+}
+
+.area-tab i {
+    font-size: 18px;
+}
+
+/* ==========================================
+   BOTONES DE ADMINISTRACIÓN
+   ========================================== */
+.admin-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* ==========================================
+   CARDS DE MÉTRICAS
+   ========================================== */
+.metric-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    height: 100%;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--area-color, #3b82f6);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.metric-card:hover::before {
+    opacity: 1;
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+    background: var(--area-color, #3b82f6);
+    opacity: 0.2;
+}
+
+.metric-label {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    margin: 12px 0 4px;
+    line-height: 1;
+}
+
+.metric-unit {
+    font-size: 16px;
+    color: #64748b;
+    margin-left: 4px;
+}
+
+.metric-note {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.metric-comparison {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.metric-comparison.positive {
+    color: #10b981;
+}
+
+.metric-comparison.negative {
+    color: #ef4444;
+}
+
+.metric-comparison.neutral {
+    color: #64748b;
+}
+
+.metric-comparison i {
+    font-size: 16px;
+}
+
+/* ==========================================
+   GRÁFICOS
+   ========================================== */
+.chart-container {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.chart-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.chart-subtitle {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+}
+
+/* ==========================================
+   PROGRESS BAR
+   ========================================== */
+.progress-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.progress-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.progress-bar-custom {
+    height: 12px;
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--area-color, #3b82f6);
+    border-radius: 6px;
+    transition: width 1s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.progress-percentage {
+    font-weight: 600;
+    color: white;
+}
+
+/* ==========================================
+   ESTADOS Y ALERTAS
+   ========================================== */
+.empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 64px;
+    color: #475569;
+    margin-bottom: 16px;
+}
+
+.empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #94a3b8;
+}
+
+.empty-subtitle {
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* ==========================================
+   FORMULARIOS
+   ========================================== */
+.form-label {
+    color: #94a3b8;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-control,
+.form-select {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: var(--area-color, #3b82f6);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-control::placeholder {
+    color: #64748b;
+}
+
+/* ==========================================
+   TABLAS
+   ========================================== */
+.table {
+    color: #e2e8f0;
+}
+
+.table thead {
+    background: rgba(15, 23, 42, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table thead th {
+    border-bottom: none;
+    color: #94a3b8;
+    font-weight: 600;
+    padding: 16px 12px;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+}
+
+.table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table tbody td {
+    padding: 14px 12px;
+    vertical-align: middle;
+}
+
+/* ==========================================
+   BADGES
+   ========================================== */
+.badge {
+    padding: 6px 12px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+/* ==========================================
+   BOTONES
+   ========================================== */
+.btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+}
+
+/* ==========================================
+   UTILIDADES
+   ========================================== */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+    .area-tabs {
+        overflow-x: auto;
+    }
+    
+    .area-tab {
+        white-space: nowrap;
+    }
+    
+    .metric-value {
+        font-size: 28px;
+    }
+    
+    .admin-buttons {
+        flex-direction: column;
+    }
+    
+    .admin-buttons .btn {
+        width: 100%;
+    }
+}
+
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.metric-card,
+.chart-container,
+.progress-card {
+    animation: fadeIn 0.5s ease;
+}
+
+/* ==========================================
+   DARK MODE OVERRIDES
+   ========================================== */
+[data-bs-theme="dark"] .dropdown-menu {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
