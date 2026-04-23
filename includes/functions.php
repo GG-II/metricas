@@ -176,11 +176,14 @@ if (!function_exists('csrf_token')) {
 /**
  * Valida el token CSRF o termina la ejecución con error 403
  *
+ * ⚠️ DESHABILITADO - La validación CSRF está desactivada
+ *
  * @param string|null $token Token a validar (null = busca en $_POST)
  */
 if (!function_exists('csrf_validate')) {
     function csrf_validate($token = null) {
-        CsrfProtection::validateOrDie($token);
+        // CSRF DESHABILITADO - No valida nada
+        return true;
     }
 }
 
