@@ -646,13 +646,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function cargarMetricasDisponibles(areaId) {
         componentesList.innerHTML = '<p class="text-muted text-center py-2"><small>Cargando...</small></p>';
 
-        fetch('<?php echo baseUrl("/api/endpoints/metricas.php"); ?>?area_id=' + areaId)
+        fetch('../api/get-metricas-by-area.php?area_id=' + areaId)
             .then(response => response.json())
             .then(data => {
-                metricasDisponibles = data.data || [];
-                renderizarComponentes();
+                if (data.success) {
+                    metricasDisponibles = data.data || [];
+                    renderizarComponentes();
+                } else {
+                    componentesList.innerHTML = '<p class="text-danger text-center py-2"><small>' + (data.error || 'Error al cargar') + '</small></p>';
+                }
             })
             .catch(error => {
+                console.error('Error:', error);
                 componentesList.innerHTML = '<p class="text-danger text-center py-2"><small>Error al cargar métricas</small></p>';
             });
     }
