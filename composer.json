@@ -1,0 +1,22 @@
+{
+    "name": "metricas/sistema",
+    "description": "Sistema de Métricas Multi-Departamento",
+    "autoload": {
+        "psr-4": {
+            "App\\Models\\": "src/Models/",
+            "App\\Controllers\\": "src/Controllers/",
+            "App\\Middleware\\": "src/Middleware/",
+            "App\\Services\\": "src/Services/",
+            "App\\Utils\\": "src/Utils/"
+        },
+        "files": [
+            "src/Utils/Helpers.php"
+        ]
+    },
+    "require": {
+        "php": ">=8.1",
+        "phpoffice/phpword": "^1.2",
+        "tecnickcom/tcpdf": "^6.6",
+        "dompdf/dompdf": "^2.0"
+    }
+}

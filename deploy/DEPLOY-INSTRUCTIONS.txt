@@ -1,0 +1,179 @@
+================================================================================
+  INSTRUCCIONES DE DESPLIEGUE - DASHBOARD DE METRICAS IT
+================================================================================
+
+PASO 1: EJECUTAR CHECKLIST PRE-DESPLIEGUE
+------------------------------------------
+En tu máquina local (donde está el código):
+
+    PowerShell (como Administrador):
+    > cd C:\xampp\htdocs\metricas
+    > .\deploy\pre-deploy-checklist.ps1
+
+    ✓ Si todo pasa, continuar al Paso 2
+    ✗ Si hay errores, corregir antes de continuar
+
+
+PASO 2: CREAR PAQUETE DE DESPLIEGUE
+------------------------------------
+    PowerShell:
+    > .\deploy\create-deployment-package.ps1
+
+    Esto genera:
+    → metricas-it-deploy-YYYYMMDD-HHMMSS.zip
+    → deploy-iis.bat (junto al ZIP)
+
+
+PASO 3: TRANSFERIR AL SERVIDOR
+-------------------------------
+Copiar estos archivos al servidor Windows:
+
+    1. metricas-it-deploy-YYYYMMDD-HHMMSS.zip
+    2. deploy-iis.bat
+
+Via RDP, FTP, o cualquier método disponible
+
+
+PASO 4: DESCOMPRIMIR EN EL SERVIDOR
+------------------------------------
+En el servidor Windows:
+
+    1. Crear carpeta (si no existe):
+       > mkdir C:\inetpub\wwwroot\metricas-it
+
+    2. Descomprimir el ZIP completo en esa carpeta
+
+    3. Verificar que existe:
+       C:\inetpub\wwwroot\metricas-it\public\index.php
+
+
+PASO 5: EJECUTAR SCRIPT DE DESPLIEGUE
+--------------------------------------
+En el servidor, como Administrador:
+
+    > cd C:\inetpub\wwwroot\metricas-it
+    > .\deploy-iis.bat
+
+    El script automáticamente:
+    ✓ Crea Application Pool
+    ✓ Crea Sitio en IIS
+    ✓ Configura permisos
+    ✓ Configura PHP handler
+    ✓ Inicia el sitio
+
+
+PASO 6: CONFIGURAR BASE DE DATOS
+---------------------------------
+    A) Editar config.php:
+       Notepad++ C:\inetpub\wwwroot\metricas-it\config.php
+
+       Cambiar:
+       - DB_NAME (nombre de tu BD)
+       - DB_USER (usuario MySQL)
+       - DB_PASS (password seguro)
+
+    B) Crear base de datos:
+       > mysql -u root -p
+
+       mysql> CREATE DATABASE metricas_it_prod
+              CHARACTER SET utf8mb4
+              COLLATE utf8mb4_unicode_ci;
+
+       mysql> CREATE USER 'metricas_user'@'localhost'
+              IDENTIFIED BY 'PASSWORD_AQUI';
+
+       mysql> GRANT ALL PRIVILEGES ON metricas_it_prod.*
+              TO 'metricas_user'@'localhost';
+
+       mysql> FLUSH PRIVILEGES;
+       mysql> exit;
+
+    C) Importar schema:
+       > cd C:\inetpub\wwwroot\metricas-it
+       > mysql -u metricas_user -p metricas_it_prod < database\schema.sql
+
+
+PASO 7: VERIFICAR FUNCIONAMIENTO
+---------------------------------
+    Abrir navegador:
+    → http://siscoop.cicrl.com.gt/login.php
+
+    Login con credenciales por defecto:
+    - Usuario: admin@sistema.com
+    - Contraseña: admin123
+
+    ⚠️ CAMBIAR INMEDIATAMENTE
+
+    Verificar:
+    ✓ Login funciona
+    ✓ Dashboard carga
+    ✓ CSS/JS funcionan
+    ✓ Crear métrica funciona
+    ✓ Exportar funciona
+
+
+PASO 8: SEGURIDAD POST-DESPLIEGUE
+----------------------------------
+    1. Cambiar password de admin (desde Perfil)
+
+    2. Verificar en config.php:
+       define('ENVIRONMENT', 'production');
+
+    3. Verificar en C:\PHP\php.ini:
+       display_errors = Off
+       log_errors = On
+
+    4. Revisar logs:
+       C:\inetpub\wwwroot\metricas-it\logs\php-errors.log
+
+    5. Configurar HTTPS (opcional pero recomendado)
+
+
+================================================================================
+SOLUCIÓN DE PROBLEMAS RÁPIDOS
+================================================================================
+
+PROBLEMA: Error 500 al acceder
+SOLUCIÓN: Ver logs en C:\inetpub\wwwroot\metricas-it\logs\php-errors.log
+
+PROBLEMA: "Access Denied" base de datos
+SOLUCIÓN: Verificar credenciales en config.php
+
+PROBLEMA: CSS no carga
+SOLUCIÓN: Verificar BASE_URL en config.php (debe ser '/metricas-it')
+
+PROBLEMA: Sesiones no persisten
+SOLUCIÓN: Dar permisos a carpeta de sesiones (ver README-DEPLOYMENT.md)
+
+
+================================================================================
+CONTACTO SOPORTE
+================================================================================
+
+Email: soporte@cicrl.com.gt
+Documentación completa: Ver README-DEPLOYMENT.md en el paquete
+
+
+================================================================================
+CHECKLIST POST-DESPLIEGUE
+================================================================================
+
+□ Sitio accesible en navegador
+□ Login funciona
+□ Dashboard carga correctamente
+□ CSS y JavaScript funcionan
+□ Crear/editar métricas funciona
+□ Exportar CSV funciona
+□ Exportar PDF funciona
+□ API REST funciona (generar token)
+□ Password de admin cambiado
+□ ENVIRONMENT = 'production'
+□ display_errors = Off
+□ Logs se escriben correctamente
+□ Sin errores en Event Viewer
+□ Backups configurados
+
+
+================================================================================
+FIN
+================================================================================

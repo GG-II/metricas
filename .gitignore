@@ -1,0 +1,53 @@
+# Sistema de Métricas - .gitignore
+
+# Composer
+vendor/
+composer.lock
+
+# Logs
+logs/*.log
+*.log
+
+# Archivos de configuración local
+.env
+.env.local
+config.php
+config.local.php
+config.production.php
+config.development.php
+
+# Uploads
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporal
+tmp/
+temp/
+*.tmp
+
+# Cache
+cache/
+*.cache
+
+# Backups
+*.bak
+*.backup
+*.sql.gz
+
+# Node modules (si se usa)
+node_modules/
+
+# Settings locales de Claude
+.claude/settings.local.json
