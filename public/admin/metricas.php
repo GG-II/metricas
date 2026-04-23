@@ -387,6 +387,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                             </a>
                                             <?php if ($metrica['activo']): ?>
                                             <form method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar esta métrica?');">
+                                                <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="action" value="eliminar">
                                                 <input type="hidden" name="id" value="<?php echo $metrica['id']; ?>">
                                                 <button type="submit" class="btn btn-sm btn-icon btn-ghost-danger" title="Eliminar">
@@ -395,6 +396,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                             </form>
                                             <?php else: ?>
                                             <form method="POST" class="d-inline" onsubmit="return confirm('¿Restaurar esta métrica y sus metas asociadas?');">
+                                                <?php echo csrf_field(); ?>
                                                 <input type="hidden" name="action" value="restaurar">
                                                 <input type="hidden" name="id" value="<?php echo $metrica['id']; ?>">
                                                 <button type="submit" class="btn btn-sm btn-icon btn-ghost-success" title="Restaurar">
@@ -428,6 +430,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="<?php echo $editando ? 'editar' : 'crear'; ?>">
                     <?php if ($editando): ?>
                         <input type="hidden" name="id" value="<?php echo $editando['id']; ?>">
