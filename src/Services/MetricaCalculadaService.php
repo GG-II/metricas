@@ -171,22 +171,47 @@ class MetricaCalculadaService
      */
     public function getMetricasDisponibles($area_id, $excluir_metrica_id = null)
     {
-        $sql = "
-            SELECT m.id, m.nombre, m.unidad, m.tipo_valor, m.es_calculada,
-                   a.nombre as area_nombre, a.color as area_color
-            FROM metricas m
-            JOIN areas a ON m.area_id = a.id
-            WHERE m.area_id = ? AND m.activo = 1
-        ";
+        // Verificar si es el área global (slug = 'metricas-consolidadas')
+        $stmt = $this->db->prepare("SELECT slug FROM areas WHERE id = ?");
+        $stmt->execute([$area_id]);
+        $area = $stmt->fetch();
 
-        $params = [$area_id];
+        $es_area_global = ($area && $area['slug'] === 'metricas-consolidadas');
+
+        if ($es_area_global) {
+            // Área GLOBAL: mostrar métricas de TODAS las áreas
+            $sql = "
+                SELECT m.id, m.nombre, m.unidad, m.tipo_valor, m.es_calculada,
+                       a.nombre as area_nombre, a.color as area_color,
+                       d.nombre as departamento_nombre
+                FROM metricas m
+                JOIN areas a ON m.area_id = a.id
+                JOIN departamentos d ON a.departamento_id = d.id
+                WHERE m.activo = 1 AND a.slug != 'metricas-consolidadas'
+            ";
+        } else {
+            // Área NORMAL: solo métricas de esta área
+            $sql = "
+                SELECT m.id, m.nombre, m.unidad, m.tipo_valor, m.es_calculada,
+                       a.nombre as area_nombre, a.color as area_color
+                FROM metricas m
+                JOIN areas a ON m.area_id = a.id
+                WHERE m.area_id = ? AND m.activo = 1
+            ";
+        }
+
+        $params = $es_area_global ? [] : [$area_id];
 
         if ($excluir_metrica_id) {
             $sql .= " AND m.id != ?";
             $params[] = $excluir_metrica_id;
         }
 
-        $sql .= " ORDER BY m.orden ASC, m.nombre ASC";
+        if ($es_area_global) {
+            $sql .= " ORDER BY d.orden, a.orden, m.orden ASC, m.nombre ASC";
+        } else {
+            $sql .= " ORDER BY m.orden ASC, m.nombre ASC";
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

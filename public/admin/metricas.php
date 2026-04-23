@@ -600,6 +600,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let metricasDisponibles = [];
     let componentesSeleccionados = [];
+    let esAreaGlobal = false;
 
     // Función helper para verificar y cargar métricas
     function verificarYCargarMetricas() {
@@ -672,7 +673,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Data recibida:', data);
                 if (data.success) {
                     metricasDisponibles = data.data || [];
-                    console.log('Métricas disponibles:', metricasDisponibles.length);
+                    esAreaGlobal = data.is_global || false;
+                    console.log('Métricas disponibles:', metricasDisponibles.length, 'Global:', esAreaGlobal);
                     renderizarComponentes();
                 } else {
                     componentesList.innerHTML = '<p class="text-danger text-center py-2"><small>' + (data.error || 'Error al cargar') + '</small></p>';
@@ -686,40 +688,96 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Renderizar lista de componentes
     function renderizarComponentes() {
-        console.log('Renderizando componentes:', metricasDisponibles);
+        console.log('Renderizando componentes:', metricasDisponibles, 'Global:', esAreaGlobal);
 
         if (metricasDisponibles.length === 0) {
-            componentesList.innerHTML = '<p class="text-muted text-center py-3"><small>No hay métricas disponibles en esta área</small></p>';
+            componentesList.innerHTML = '<p class="text-muted text-center py-3"><small>No hay métricas disponibles</small></p>';
             return;
         }
 
-        let html = '<div style="max-height: 250px; overflow-y: auto; padding: 0.5rem;">';
-        metricasDisponibles.forEach(metrica => {
-            const isSelected = componentesSeleccionados.includes(parseInt(metrica.id));
-            const iconoSafe = (metrica.icono || 'chart-line').replace(/[^a-z0-9-]/gi, '');
-            const nombreSafe = (metrica.nombre || '').replace(/[<>]/g, '');
-            const unidadSafe = metrica.unidad ? (metrica.unidad).replace(/[<>]/g, '') : '';
+        let html = '<div style="max-height: 350px; overflow-y: auto; padding: 0.5rem;">';
 
-            console.log('Renderizando métrica:', metrica.id, nombreSafe);
+        if (esAreaGlobal) {
+            // ÁREA GLOBAL: Agrupar por Departamento > Área
+            const grupos = {};
 
-            html += `
-                <label style="display: flex; align-items: center; padding: 0.75rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer; user-select: none;">
-                    <input type="checkbox"
-                           style="width: 18px; height: 18px; margin-right: 0.75rem; cursor: pointer;"
-                           value="${metrica.id}"
-                           ${isSelected ? 'checked' : ''}
-                           onchange="toggleComponente(${metrica.id}, this.checked)">
-                    <span style="flex: 1;">
-                        <i class="ti ti-${iconoSafe} me-1"></i>
-                        <strong>${nombreSafe}</strong>
-                        ${unidadSafe ? `<span class="text-muted ms-1">(${unidadSafe})</span>` : ''}
-                    </span>
-                </label>
-            `;
-        });
+            metricasDisponibles.forEach(metrica => {
+                const dept = metrica.departamento_nombre || 'Sin Departamento';
+                const area = metrica.area_nombre || 'Sin Área';
+
+                if (!grupos[dept]) grupos[dept] = {};
+                if (!grupos[dept][area]) grupos[dept][area] = [];
+
+                grupos[dept][area].push(metrica);
+            });
+
+            // Renderizar grupos
+            Object.keys(grupos).sort().forEach(dept => {
+                html += `<div style="margin-bottom: 1rem;">`;
+                html += `<div style="font-weight: 700; padding: 0.5rem; background: #e9ecef; border-radius: 4px; margin-bottom: 0.5rem;">
+                            <i class="ti ti-building me-2"></i>${dept}
+                         </div>`;
+
+                Object.keys(grupos[dept]).sort().forEach(area => {
+                    html += `<div style="margin-left: 1rem; margin-bottom: 0.75rem;">`;
+                    html += `<div style="font-weight: 600; font-size: 0.9rem; padding: 0.25rem; color: #495057; margin-bottom: 0.25rem;">
+                                <i class="ti ti-folder me-1"></i>${area}
+                             </div>`;
+
+                    grupos[dept][area].forEach(metrica => {
+                        const isSelected = componentesSeleccionados.includes(parseInt(metrica.id));
+                        const iconoSafe = (metrica.icono || 'chart-line').replace(/[^a-z0-9-]/gi, '');
+                        const nombreSafe = (metrica.nombre || '').replace(/[<>]/g, '');
+                        const unidadSafe = metrica.unidad ? (metrica.unidad).replace(/[<>]/g, '') : '';
+
+                        html += `
+                            <label style="display: flex; align-items: center; padding: 0.5rem 0.75rem; margin-bottom: 0.25rem; margin-left: 1.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer; user-select: none; font-size: 0.9rem;">
+                                <input type="checkbox"
+                                       style="width: 16px; height: 16px; margin-right: 0.5rem; cursor: pointer;"
+                                       value="${metrica.id}"
+                                       ${isSelected ? 'checked' : ''}
+                                       onchange="toggleComponente(${metrica.id}, this.checked)">
+                                <span style="flex: 1;">
+                                    <i class="ti ti-${iconoSafe} me-1"></i>
+                                    ${nombreSafe}
+                                    ${unidadSafe ? `<span class="text-muted ms-1">(${unidadSafe})</span>` : ''}
+                                </span>
+                            </label>
+                        `;
+                    });
+
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+            });
+
+        } else {
+            // ÁREA NORMAL: Lista simple
+            metricasDisponibles.forEach(metrica => {
+                const isSelected = componentesSeleccionados.includes(parseInt(metrica.id));
+                const iconoSafe = (metrica.icono || 'chart-line').replace(/[^a-z0-9-]/gi, '');
+                const nombreSafe = (metrica.nombre || '').replace(/[<>]/g, '');
+                const unidadSafe = metrica.unidad ? (metrica.unidad).replace(/[<>]/g, '') : '';
+
+                html += `
+                    <label style="display: flex; align-items: center; padding: 0.75rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer; user-select: none;">
+                        <input type="checkbox"
+                               style="width: 18px; height: 18px; margin-right: 0.75rem; cursor: pointer;"
+                               value="${metrica.id}"
+                               ${isSelected ? 'checked' : ''}
+                               onchange="toggleComponente(${metrica.id}, this.checked)">
+                        <span style="flex: 1;">
+                            <i class="ti ti-${iconoSafe} me-1"></i>
+                            <strong>${nombreSafe}</strong>
+                            ${unidadSafe ? `<span class="text-muted ms-1">(${unidadSafe})</span>` : ''}
+                        </span>
+                    </label>
+                `;
+            });
+        }
+
         html += '</div>';
-
-        console.log('HTML generado length:', html.length);
         componentesList.innerHTML = html;
     }
 
