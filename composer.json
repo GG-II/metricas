@@ -10,7 +10,8 @@
             "App\\Utils\\": "src/Utils/"
         },
         "files": [
-            "src/Utils/Helpers.php"
+            "src/Utils/Helpers.php",
+            "includes/functions.php"
         ]
     },
     "require": {
