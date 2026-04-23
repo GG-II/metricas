@@ -598,12 +598,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let metricasDisponibles = [];
     let componentesSeleccionados = [];
 
+    // Función helper para verificar y cargar métricas
+    function verificarYCargarMetricas() {
+        const areaId = areaSelect.value;
+        const esCalculada = checkboxCalculada.checked;
+
+        console.log('Verificar y cargar:', { areaId, esCalculada });
+
+        if (esCalculada && areaId) {
+            cargarMetricasDisponibles(areaId);
+        } else if (esCalculada && !areaId) {
+            componentesList.innerHTML = '<p class="text-muted text-center py-3"><small>Primero selecciona un área para ver las métricas disponibles</small></p>';
+        }
+    }
+
     // Mostrar/ocultar configuración de métrica calculada
     checkboxCalculada?.addEventListener('change', function() {
         configCalculada.style.display = this.checked ? 'block' : 'none';
-        if (this.checked && areaSelect.value) {
-            cargarMetricasDisponibles(areaSelect.value);
-        }
+        verificarYCargarMetricas();
     });
 
     // Cargar áreas al seleccionar departamento
@@ -637,57 +649,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cargar métricas disponibles al seleccionar área
     areaSelect.addEventListener('change', function() {
-        if (this.value && checkboxCalculada.checked) {
-            cargarMetricasDisponibles(this.value);
-        }
+        verificarYCargarMetricas();
     });
 
     // Función para cargar métricas disponibles
     function cargarMetricasDisponibles(areaId) {
+        console.log('Cargando métricas para área:', areaId);
         componentesList.innerHTML = '<p class="text-muted text-center py-2"><small>Cargando...</small></p>';
 
-        fetch('../api/get-metricas-by-area.php?area_id=' + areaId)
-            .then(response => response.json())
+        const url = '../api/get-metricas-by-area.php?area_id=' + areaId;
+        console.log('URL:', url);
+
+        fetch(url)
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Data recibida:', data);
                 if (data.success) {
                     metricasDisponibles = data.data || [];
+                    console.log('Métricas disponibles:', metricasDisponibles.length);
                     renderizarComponentes();
                 } else {
                     componentesList.innerHTML = '<p class="text-danger text-center py-2"><small>' + (data.error || 'Error al cargar') + '</small></p>';
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                componentesList.innerHTML = '<p class="text-danger text-center py-2"><small>Error al cargar métricas</small></p>';
+                console.error('Error completo:', error);
+                componentesList.innerHTML = '<p class="text-danger text-center py-2"><small>Error al cargar métricas: ' + error.message + '</small></p>';
             });
     }
 
     // Renderizar lista de componentes
     function renderizarComponentes() {
+        console.log('Renderizando componentes:', metricasDisponibles);
+
         if (metricasDisponibles.length === 0) {
             componentesList.innerHTML = '<p class="text-muted text-center py-3"><small>No hay métricas disponibles en esta área</small></p>';
             return;
         }
 
-        let html = '<div style="max-height: 200px; overflow-y: auto;">';
+        let html = '<div style="max-height: 250px; overflow-y: auto; padding: 0.5rem;">';
         metricasDisponibles.forEach(metrica => {
-            const isSelected = componentesSeleccionados.includes(metrica.id);
+            const isSelected = componentesSeleccionados.includes(parseInt(metrica.id));
+            const iconoSafe = (metrica.icono || 'chart-line').replace(/[^a-z0-9-]/gi, '');
+            const nombreSafe = (metrica.nombre || '').replace(/[<>]/g, '');
+            const unidadSafe = metrica.unidad ? (metrica.unidad).replace(/[<>]/g, '') : '';
+
+            console.log('Renderizando métrica:', metrica.id, nombreSafe);
+
             html += `
-                <label class="form-check" style="padding: 0.5rem;">
-                    <input type="checkbox" class="form-check-input componente-checkbox"
+                <label style="display: flex; align-items: center; padding: 0.75rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer; user-select: none;">
+                    <input type="checkbox"
+                           style="width: 18px; height: 18px; margin-right: 0.75rem; cursor: pointer;"
                            value="${metrica.id}"
                            ${isSelected ? 'checked' : ''}
                            onchange="toggleComponente(${metrica.id}, this.checked)">
-                    <span class="form-check-label">
-                        <i class="ti ti-${metrica.icono || 'chart-line'} me-1"></i>
-                        ${metrica.nombre}
-                        ${metrica.unidad ? `<span class="text-muted ms-1">(${metrica.unidad})</span>` : ''}
+                    <span style="flex: 1;">
+                        <i class="ti ti-${iconoSafe} me-1"></i>
+                        <strong>${nombreSafe}</strong>
+                        ${unidadSafe ? `<span class="text-muted ms-1">(${unidadSafe})</span>` : ''}
                     </span>
                 </label>
             `;
         });
         html += '</div>';
 
+        console.log('HTML generado length:', html.length);
         componentesList.innerHTML = html;
     }
 
