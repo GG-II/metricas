@@ -2,7 +2,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
 
     <!-- Toast Notifications -->
-    <script src="<?php echo baseUrl('/public/assets/js/toast-notifications.js'); ?>"></script>
+    <script src="<?php echo baseUrl('/assets/js/toast-notifications.js'); ?>"></script>
 
     <!-- Custom JS -->
     <script>
@@ -35,7 +35,7 @@
                     updateThemeIcon();
 
                     // Guardar preferencia en BD
-                    fetch('<?php echo baseUrl("/public/api/cambiar-tema.php"); ?>', {
+                    fetch('<?php echo baseUrl("/api/cambiar-tema.php"); ?>', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',

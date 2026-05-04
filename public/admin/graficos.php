@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Verificar permiso
                 if (!PermissionService::canEditArea($user, $area_id)) {
                     setFlash('error', 'No tienes permiso para editar esta área');
-                    redirect('/public/admin/graficos.php');
+                    redirect('/admin/graficos.php');
                     break;
                 }
 
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($graficoModel->create($data)) {
                     setFlash('success', '✓ Gráfico creado exitosamente');
-                    redirect('/public/admin/graficos.php?area=' . $area_id);
+                    redirect('/admin/graficos.php?area=' . $area_id);
                 } else {
                     setFlash('error', 'Error al crear el gráfico');
                 }
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (!$grafico || !PermissionService::canEditArea($user, $grafico['area_id'])) {
                     setFlash('error', 'No tienes permiso para editar este gráfico');
-                    redirect('/public/admin/graficos.php');
+                    redirect('/admin/graficos.php');
                     break;
                 }
 
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar el gráfico');
                 }
-                redirect('/public/admin/graficos.php?area=' . $grafico['area_id']);
+                redirect('/admin/graficos.php?area=' . $grafico['area_id']);
                 break;
 
             case 'eliminar':
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $graficoModel->delete($id);
                     setFlash('success', '✓ Gráfico eliminado permanentemente');
                 }
-                redirect('/public/admin/graficos.php?area=' . ($grafico['area_id'] ?? ''));
+                redirect('/admin/graficos.php?area=' . ($grafico['area_id'] ?? ''));
                 break;
         }
     }
@@ -169,7 +169,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <li class="breadcrumb-item active">Gráficos</li>
                             </ol>
                         </nav>
@@ -298,7 +298,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     <a href="?area=<?php echo $area_id; ?>&editar=<?php echo $grafico['id']; ?>" class="btn btn-sm btn-primary">
                                         <i class="ti ti-edit"></i> Editar
                                     </a>
-                                    <a href="<?php echo baseUrl('/public/index.php?area=' . $area_id . '&edit=1'); ?>" class="btn btn-sm btn-outline-primary">
+                                    <a href="<?php echo baseUrl('/index.php?area=' . $area_id . '&edit=1'); ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="ti ti-layout"></i> Ver en Dashboard
                                     </a>
                                     <form method="POST" class="d-inline" onsubmit="confirmarEliminacion(event, <?php echo $grafico['id']; ?>, '<?php echo addslashes($grafico['titulo']); ?>')">
@@ -671,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <style>
 /* SweetAlert2 Dark Mode */

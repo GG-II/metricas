@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Previene ataques de session fixation
             CsrfProtection::regenerateToken();
 
-            redirect('/public/index.php');
+            redirect('/index.php');
         } else {
             $error = 'Usuario o contraseña incorrectos';
         }
@@ -54,7 +54,7 @@ $pageTitle = 'Iniciar Sesión - Sistema de Métricas';
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="<?php echo baseUrl('/public/assets/css/custom.css'); ?>" rel="stylesheet">
+    <link href="<?php echo baseUrl('/assets/css/custom.css'); ?>" rel="stylesheet">
 </head>
 <body class="login-container">
     <div class="container container-tight py-4">

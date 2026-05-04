@@ -17,4 +17,4 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Redirigir al login
-redirect('/public/login.php');
+redirect('/login.php');

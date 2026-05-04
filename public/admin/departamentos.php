@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al crear el departamento');
                 }
-                redirect('/public/admin/departamentos.php');
+                redirect('/admin/departamentos.php');
                 break;
 
             case 'editar':
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar el departamento');
                 }
-                redirect('/public/admin/departamentos.php');
+                redirect('/admin/departamentos.php');
                 break;
 
             case 'eliminar':
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al eliminar el departamento');
                 }
-                redirect('/public/admin/departamentos.php');
+                redirect('/admin/departamentos.php');
                 break;
         }
     }
@@ -96,7 +96,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <li class="breadcrumb-item active">Departamentos</li>
                             </ol>
                         </nav>
@@ -163,7 +163,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 <a href="?editar=<?php echo $dept['id']; ?>" class="btn btn-sm btn-primary">
                                     <i class="ti ti-edit"></i> Editar
                                 </a>
-                                <a href="<?php echo baseUrl('/public/admin/areas.php?departamento=' . $dept['id']); ?>" class="btn btn-sm btn-outline-primary">
+                                <a href="<?php echo baseUrl('/admin/areas.php?departamento=' . $dept['id']); ?>" class="btn btn-sm btn-outline-primary">
                                     <i class="ti ti-layout-grid"></i> Ver Áreas
                                 </a>
                                 <?php if ($dept['activo']): ?>
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('modalDepartamento').addEventListener('hidden.bs.modal', function() {
     <?php if ($editando): ?>
         // Limpiar parámetro editar de la URL
-        window.history.replaceState({}, '', '<?php echo baseUrl('/public/admin/departamentos.php'); ?>');
+        window.history.replaceState({}, '', '<?php echo baseUrl('/admin/departamentos.php'); ?>');
     <?php else: ?>
         document.getElementById('modalDepartamento').querySelector('form').reset();
     <?php endif; ?>
@@ -317,6 +317,6 @@ document.getElementById('modalDepartamento').addEventListener('hidden.bs.modal',
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

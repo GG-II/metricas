@@ -16,7 +16,7 @@ class AuthMiddleware {
         }
 
         if (!isLoggedIn()) {
-            redirect('/public/login.php');
+            redirect('/login.php');
         }
     }
 
@@ -29,7 +29,7 @@ class AuthMiddleware {
         }
 
         if (isLoggedIn()) {
-            redirect('/public/index.php');
+            redirect('/index.php');
         }
     }
 }

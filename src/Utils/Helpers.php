@@ -115,7 +115,7 @@ if (!function_exists('baseUrl')) {
  */
 if (!function_exists('asset')) {
     function asset($path) {
-        return baseUrl('/public/assets/' . ltrim($path, '/'));
+        return baseUrl('/assets/' . ltrim($path, '/'));
     }
 }
 

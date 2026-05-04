@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Verificar permiso
     if (!PermissionService::canEditArea($user, $area_id)) {
         setFlash('error', 'No tienes permiso para editar esta área');
-        redirect('/public/captura-valores.php');
+        redirect('/captura-valores.php');
         exit;
     }
 
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         setFlash('warning', 'ℹ No se ingresaron valores para guardar');
     }
 
-    redirect('/public/captura-valores.php?periodo=' . $periodo_id . '&area=' . $area_id);
+    redirect('/captura-valores.php?periodo=' . $periodo_id . '&area=' . $area_id);
     exit;
 }
 
@@ -217,7 +217,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <li class="breadcrumb-item active">Captura de Valores</li>
                             </ol>
                         </nav>
@@ -317,7 +317,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                     <h2>No hay métricas en esta área</h2>
                     <p class="text-muted">Primero debes crear métricas para poder capturar valores</p>
                     <?php if (in_array($user['rol'], ['super_admin', 'dept_admin'])): ?>
-                        <a href="<?php echo baseUrl('/public/admin/metricas.php?area=' . $area_id); ?>" class="btn btn-primary mt-3">
+                        <a href="<?php echo baseUrl('/admin/metricas.php?area=' . $area_id); ?>" class="btn btn-primary mt-3">
                             <i class="ti ti-plus me-1"></i>
                             Crear Métricas
                         </a>
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        fetch('<?php echo baseUrl("/public/api/get-areas-by-departamento.php"); ?>?departamento_id=' + deptId)
+        fetch('<?php echo baseUrl("/api/get-areas-by-departamento.php"); ?>?departamento_id=' + deptId)
             .then(response => response.json())
             .then(data => {
                 areaSelect.innerHTML = '<option value="">Seleccionar área...</option>';
@@ -503,8 +503,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
-<script src="<?php echo baseUrl('/public/assets/js/toast-notifications.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/toast-notifications.js'); ?>"></script>
 
 <script>
 // Mostrar toast al guardar valores

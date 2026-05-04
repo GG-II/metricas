@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al crear el área');
                 }
-                redirect('/public/admin/areas.php' . (isset($_POST['departamento_id']) ? '?departamento=' . $_POST['departamento_id'] : ''));
+                redirect('/admin/areas.php' . (isset($_POST['departamento_id']) ? '?departamento=' . $_POST['departamento_id'] : ''));
                 break;
 
             case 'editar':
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar el área');
                 }
-                redirect('/public/admin/areas.php' . (isset($_POST['departamento_id']) ? '?departamento=' . $_POST['departamento_id'] : ''));
+                redirect('/admin/areas.php' . (isset($_POST['departamento_id']) ? '?departamento=' . $_POST['departamento_id'] : ''));
                 break;
 
             case 'eliminar':
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al eliminar el área');
                 }
-                redirect('/public/admin/areas.php');
+                redirect('/admin/areas.php');
                 break;
         }
     }
@@ -128,9 +128,9 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <?php if ($departamento_actual): ?>
-                                    <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/departamentos.php'); ?>">Departamentos</a></li>
+                                    <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/departamentos.php'); ?>">Departamentos</a></li>
                                     <li class="breadcrumb-item active"><?php echo e($departamento_actual['nombre']); ?></li>
                                 <?php else: ?>
                                     <li class="breadcrumb-item active">Áreas</li>
@@ -152,13 +152,13 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end">
                                     <a class="dropdown-item <?php echo !$departamento_filtro ? 'active' : ''; ?>"
-                                       href="<?php echo baseUrl('/public/admin/areas.php'); ?>">
+                                       href="<?php echo baseUrl('/admin/areas.php'); ?>">
                                         Todos los departamentos
                                     </a>
                                     <div class="dropdown-divider"></div>
                                     <?php foreach ($departamentos as $dept): ?>
                                     <a class="dropdown-item"
-                                       href="<?php echo baseUrl('/public/admin/areas.php?departamento=' . $dept['id']); ?>">
+                                       href="<?php echo baseUrl('/admin/areas.php?departamento=' . $dept['id']); ?>">
                                         <i class="ti ti-<?php echo e($dept['icono']); ?> me-2"></i>
                                         <?php echo e($dept['nombre']); ?>
                                     </a>
@@ -247,7 +247,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                    class="btn btn-sm btn-primary">
                                     <i class="ti ti-edit"></i> Editar
                                 </a>
-                                <a href="<?php echo baseUrl('/public/admin/metricas.php?area=' . $area['id']); ?>" class="btn btn-sm btn-outline-primary">
+                                <a href="<?php echo baseUrl('/admin/metricas.php?area=' . $area['id']); ?>" class="btn btn-sm btn-outline-primary">
                                     <i class="ti ti-chart-line"></i> Ver Métricas
                                 </a>
                                 <?php if ($area['activo']): ?>
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('modalArea').addEventListener('hidden.bs.modal', function() {
     <?php if ($editando): ?>
         // Limpiar parámetro editar de la URL
-        window.history.replaceState({}, '', '<?php echo baseUrl('/public/admin/areas.php'); ?><?php echo $departamento_filtro ? '?departamento=' . $departamento_filtro : ''; ?>');
+        window.history.replaceState({}, '', '<?php echo baseUrl('/admin/areas.php'); ?><?php echo $departamento_filtro ? '?departamento=' . $departamento_filtro : ''; ?>');
     <?php else: ?>
         document.getElementById('modalArea').querySelector('form').reset();
     <?php endif; ?>
@@ -413,6 +413,6 @@ document.getElementById('modalArea').addEventListener('hidden.bs.modal', functio
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

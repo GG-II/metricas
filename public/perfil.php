@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar el perfil');
                 }
-                redirect('/public/perfil.php');
+                redirect('/perfil.php');
                 break;
 
             case 'cambiar_contrasena':
@@ -49,14 +49,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $userDB = $usuarioModel->find($user['id']);
                 if (!password_verify($actual, $userDB['password'])) {
                     setFlash('error', 'La contraseña actual es incorrecta');
-                    redirect('/public/perfil.php');
+                    redirect('/perfil.php');
                     break;
                 }
 
                 // Verificar que las nuevas contraseñas coincidan
                 if ($nueva !== $confirmar) {
                     setFlash('error', 'Las contraseñas nuevas no coinciden');
-                    redirect('/public/perfil.php');
+                    redirect('/perfil.php');
                     break;
                 }
 
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar la contraseña');
                 }
-                redirect('/public/perfil.php');
+                redirect('/perfil.php');
                 break;
 
             case 'cambiar_tema':
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar el tema');
                 }
-                redirect('/public/perfil.php');
+                redirect('/perfil.php');
                 break;
         }
     }
@@ -306,6 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../views/layouts/footer.php'; ?>

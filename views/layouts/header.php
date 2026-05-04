@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="<?php echo baseUrl('/public/assets/css/custom.css'); ?>" rel="stylesheet">
+    <link href="<?php echo baseUrl('/assets/css/custom.css'); ?>" rel="stylesheet">
 </head>
 <body>
     <?php if (isLoggedIn()): ?>
@@ -22,7 +22,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <h1 class="navbar-brand d-none-navbar-horizontal pe-0 pe-md-3">
-                    <a href="<?php echo baseUrl('/public/index.php'); ?>">
+                    <a href="<?php echo baseUrl('/index.php'); ?>">
                         <i class="ti ti-chart-bar me-2"></i>
                         Sistema de Métricas
                     </a>
@@ -60,16 +60,16 @@
                             </div>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                            <a href="<?php echo baseUrl('/public/perfil.php'); ?>" class="dropdown-item">
+                            <a href="<?php echo baseUrl('/perfil.php'); ?>" class="dropdown-item">
                                 <i class="ti ti-user me-2"></i> Mi Perfil
                             </a>
                             <?php if (in_array($user['rol'], ['super_admin', 'dept_admin', 'area_admin'])): ?>
-                            <a href="<?php echo baseUrl('/public/admin/index.php'); ?>" class="dropdown-item">
+                            <a href="<?php echo baseUrl('/admin/index.php'); ?>" class="dropdown-item">
                                 <i class="ti ti-settings me-2"></i> Administración
                             </a>
                             <?php endif; ?>
                             <div class="dropdown-divider"></div>
-                            <a href="<?php echo baseUrl('/public/logout.php'); ?>" class="dropdown-item">
+                            <a href="<?php echo baseUrl('/logout.php'); ?>" class="dropdown-item">
                                 <i class="ti ti-logout me-2"></i> Cerrar Sesión
                             </a>
                         </div>

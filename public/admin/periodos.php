@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $existe = $periodoModel->findByEjercicioAndPeriodo($ejercicio, $periodo);
                 if ($existe) {
                     setFlash('error', 'Este período ya existe');
-                    redirect('/public/admin/periodos.php');
+                    redirect('/admin/periodos.php');
                     break;
                 }
 
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al crear el período');
                 }
-                redirect('/public/admin/periodos.php');
+                redirect('/admin/periodos.php');
                 break;
 
             case 'toggle_activo':
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al cambiar el estado');
                 }
-                redirect('/public/admin/periodos.php');
+                redirect('/admin/periodos.php');
                 break;
 
             case 'generar_anio':
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('info', 'Todos los períodos del año ya existen');
                 }
-                redirect('/public/admin/periodos.php');
+                redirect('/admin/periodos.php');
                 break;
         }
     }
@@ -166,7 +166,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <li class="breadcrumb-item active">Períodos</li>
                             </ol>
                         </nav>
@@ -428,6 +428,6 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

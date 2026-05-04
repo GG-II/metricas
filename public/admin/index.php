@@ -105,7 +105,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         <!-- Departamentos -->
                         <?php if ($user['rol'] === 'super_admin'): ?>
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/departamentos.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/departamentos.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -143,7 +143,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Áreas -->
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/areas.php'); ?><?php echo $user['rol'] === 'dept_admin' ? '?departamento=' . $user['departamento_id'] : ''; ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/areas.php'); ?><?php echo $user['rol'] === 'dept_admin' ? '?departamento=' . $user['departamento_id'] : ''; ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -181,7 +181,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         <!-- Períodos -->
                         <?php if ($user['rol'] === 'super_admin'): ?>
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/periodos.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/periodos.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -220,7 +220,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         <!-- Usuarios -->
                         <?php if ($user['rol'] === 'super_admin'): ?>
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/usuarios.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/usuarios.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -281,7 +281,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Métricas -->
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/metricas.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/metricas.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -322,7 +322,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Metas -->
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/metas.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/metas.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -363,7 +363,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Gráficos -->
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/graficos.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/graficos.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -423,7 +423,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Captura de Valores -->
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/captura-valores.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/captura-valores.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">
@@ -465,7 +465,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Reportes -->
                         <div class="card card-link admin-card-cascade">
-                            <a href="<?php echo baseUrl('/public/admin/reportes.php'); ?>" class="text-decoration-none">
+                            <a href="<?php echo baseUrl('/admin/reportes.php'); ?>" class="text-decoration-none">
                                 <div class="card-body">
                                     <div class="row align-items-start">
                                         <div class="col-auto">

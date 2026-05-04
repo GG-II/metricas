@@ -889,7 +889,7 @@ $pageTitle = ($modo === 'crear' ? 'Crear Nuevo Reporte' : 'Editar Reporte');
         });
     </script>
 
-    <script src="<?php echo baseUrl('/public/assets/js/reportes-editor.js'); ?>"></script>
+    <script src="<?php echo baseUrl('/assets/js/reportes-editor.js'); ?>"></script>
 
 </body>
 </html>

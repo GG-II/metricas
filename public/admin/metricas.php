@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al crear la métrica');
                 }
-                redirect('/public/admin/metricas.php' . (isset($_POST['area_id']) ? '?area=' . $_POST['area_id'] : ''));
+                redirect('/admin/metricas.php' . (isset($_POST['area_id']) ? '?area=' . $_POST['area_id'] : ''));
                 break;
 
             case 'editar':
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar la métrica');
                 }
-                redirect('/public/admin/metricas.php' . (isset($_POST['area_id']) ? '?area=' . $_POST['area_id'] : ''));
+                redirect('/admin/metricas.php' . (isset($_POST['area_id']) ? '?area=' . $_POST['area_id'] : ''));
                 break;
 
             case 'eliminar':
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al eliminar la métrica');
                 }
-                redirect('/public/admin/metricas.php');
+                redirect('/admin/metricas.php');
                 break;
 
             case 'restaurar':
@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al restaurar la métrica');
                 }
-                redirect('/public/admin/metricas.php?mostrar=todas');
+                redirect('/admin/metricas.php?mostrar=todas');
                 break;
         }
     }
@@ -226,9 +226,9 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <?php if ($area_actual): ?>
-                                    <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/areas.php?departamento=' . $area_actual['departamento_id']); ?>">Áreas</a></li>
+                                    <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/areas.php?departamento=' . $area_actual['departamento_id']); ?>">Áreas</a></li>
                                     <li class="breadcrumb-item active"><?php echo e($area_actual['nombre']); ?></li>
                                 <?php else: ?>
                                     <li class="breadcrumb-item active">Métricas</li>
@@ -252,7 +252,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAreaFilter"
                                      style="max-height: 400px; overflow-y: auto; min-width: 250px;">
                                     <a class="dropdown-item <?php echo !$area_filtro ? 'active' : ''; ?>"
-                                       href="<?php echo baseUrl('/public/admin/metricas.php'); ?>">
+                                       href="<?php echo baseUrl('/admin/metricas.php'); ?>">
                                         <i class="ti ti-layout-grid me-2"></i>
                                         Todas las áreas
                                     </a>
@@ -267,7 +267,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                         <h6 class="dropdown-header"><?php echo e($dept['nombre']); ?></h6>
                                         <?php foreach ($areas as $area): ?>
                                         <a class="dropdown-item <?php echo $area_filtro == $area['id'] ? 'active' : ''; ?>"
-                                           href="<?php echo baseUrl('/public/admin/metricas.php?area=' . $area['id']); ?>">
+                                           href="<?php echo baseUrl('/admin/metricas.php?area=' . $area['id']); ?>">
                                             <i class="ti ti-<?php echo e($area['icono']); ?> me-2"></i>
                                             <?php echo e($area['nombre']); ?>
                                         </a>
@@ -934,7 +934,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Limpiar formulario y URL al cerrar modal
     document.getElementById('modalMetrica').addEventListener('hidden.bs.modal', function() {
         <?php if ($editando): ?>
-            window.history.replaceState({}, '', '<?php echo baseUrl('/public/admin/metricas.php'); ?><?php echo $area_filtro ? '?area=' . $area_filtro : ''; ?>');
+            window.history.replaceState({}, '', '<?php echo baseUrl('/admin/metricas.php'); ?><?php echo $area_filtro ? '?area=' . $area_filtro : ''; ?>');
         <?php else: ?>
             document.getElementById('formMetrica').reset();
             configCalculada.style.display = 'none';
@@ -967,10 +967,10 @@ function exportarMetricasActuales() {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Export Module -->
-<script src="<?php echo baseUrl('/public/assets/js/export.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/export.js'); ?>"></script>
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

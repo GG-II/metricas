@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Validar username único
                 if ($usuarioModel->usernameExists($_POST['username'])) {
                     setFlash('error', 'El nombre de usuario ya existe');
-                    redirect('/public/admin/usuarios.php');
+                    redirect('/admin/usuarios.php');
                     break;
                 }
 
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $validation = $usuarioModel->validateAreaAdmin($data);
                 if (!$validation['valid']) {
                     setFlash('error', $validation['error']);
-                    redirect('/public/admin/usuarios.php');
+                    redirect('/admin/usuarios.php');
                     break;
                 }
 
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al crear el usuario');
                 }
-                redirect('/public/admin/usuarios.php');
+                redirect('/admin/usuarios.php');
                 break;
 
             case 'editar':
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Validar username único (excluyendo el usuario actual)
                 if ($usuarioModel->usernameExists($_POST['username'], $id)) {
                     setFlash('error', 'El nombre de usuario ya existe');
-                    redirect('/public/admin/usuarios.php');
+                    redirect('/admin/usuarios.php');
                     break;
                 }
 
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $validation = $usuarioModel->validateAreaAdmin($data);
                 if (!$validation['valid']) {
                     setFlash('error', $validation['error']);
-                    redirect('/public/admin/usuarios.php');
+                    redirect('/admin/usuarios.php');
                     break;
                 }
 
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al actualizar el usuario');
                 }
-                redirect('/public/admin/usuarios.php');
+                redirect('/admin/usuarios.php');
                 break;
 
             case 'eliminar':
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // No permitir eliminar el usuario actual
                 if ($id == $user['id']) {
                     setFlash('error', 'No puedes eliminar tu propio usuario');
-                    redirect('/public/admin/usuarios.php');
+                    redirect('/admin/usuarios.php');
                     break;
                 }
 
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al eliminar el usuario');
                 }
-                redirect('/public/admin/usuarios.php');
+                redirect('/admin/usuarios.php');
                 break;
 
             case 'toggle_activo':
@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al cambiar el estado');
                 }
-                redirect('/public/admin/usuarios.php');
+                redirect('/admin/usuarios.php');
                 break;
         }
     }
@@ -158,7 +158,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <li class="breadcrumb-item active">Usuarios</li>
                             </ol>
                         </nav>
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('modalUsuario').addEventListener('hidden.bs.modal', function() {
         <?php if ($editando): ?>
             // Limpiar parámetro editar de la URL
-            window.history.replaceState({}, '', '<?php echo baseUrl('/public/admin/usuarios.php'); ?>');
+            window.history.replaceState({}, '', '<?php echo baseUrl('/admin/usuarios.php'); ?>');
         <?php else: ?>
             document.getElementById('formUsuario').reset();
         <?php endif; ?>
@@ -533,6 +533,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

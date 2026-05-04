@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $metrica = $metricaModel->find($metrica_id);
                 if (!$metrica || !$metrica['tiene_meta']) {
                     setFlash('error', 'Esta métrica no está configurada para tener metas');
-                    redirect('/public/admin/metas.php');
+                    redirect('/admin/metas.php');
                     break;
                 }
 
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $area = $areaModel->findWithDepartamento($metrica['area_id']);
                 if (!PermissionService::canEditArea($user, $metrica['area_id'])) {
                     setFlash('error', 'No tienes permiso para editar metas de esta área');
-                    redirect('/public/admin/metas.php');
+                    redirect('/admin/metas.php');
                     break;
                 }
 
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Verificar que no exista ya
                     if ($metaModel->exists($metrica_id, 'anual', $data['ejercicio'])) {
                         setFlash('error', 'Ya existe una meta anual para este ejercicio');
-                        redirect('/public/admin/metas.php?metrica=' . $metrica_id);
+                        redirect('/admin/metas.php?metrica=' . $metrica_id);
                         break;
                     }
 
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             number_format($data['valor_objetivo'], 2),
                             number_format($suma_mensual, 2)
                         ));
-                        redirect('/public/admin/metas.php?metrica=' . $metrica_id);
+                        redirect('/admin/metas.php?metrica=' . $metrica_id);
                         break;
                     }
                 } else {
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Verificar que no exista ya
                     if ($metaModel->exists($metrica_id, 'mensual', null, $data['periodo_id'])) {
                         setFlash('error', 'Ya existe una meta para este período');
-                        redirect('/public/admin/metas.php?metrica=' . $metrica_id);
+                        redirect('/admin/metas.php?metrica=' . $metrica_id);
                         break;
                     }
 
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (!$validacion['valido']) {
                         setFlash('error', $validacion['mensaje']);
-                        redirect('/public/admin/metas.php?metrica=' . $metrica_id);
+                        redirect('/admin/metas.php?metrica=' . $metrica_id);
                         break;
                     }
                 }
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     setFlash('error', 'Error al crear la meta');
                 }
-                redirect('/public/admin/metas.php?metrica=' . $metrica_id);
+                redirect('/admin/metas.php?metrica=' . $metrica_id);
                 break;
 
             case 'editar':
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $metrica = $metricaModel->find($meta['metrica_id']);
                     if (!PermissionService::canEditArea($user, $metrica['area_id'])) {
                         setFlash('error', 'No tienes permiso');
-                        redirect('/public/admin/metas.php');
+                        redirect('/admin/metas.php');
                         break;
                     }
 
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         if (!$validacion['valido']) {
                             setFlash('error', $validacion['mensaje']);
-                            redirect('/public/admin/metas.php?metrica=' . $meta['metrica_id']);
+                            redirect('/admin/metas.php?metrica=' . $meta['metrica_id']);
                             break;
                         }
                     } elseif ($meta['tipo_meta'] === 'anual') {
@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 number_format($nuevo_valor, 2),
                                 number_format($suma_mensual, 2)
                             ));
-                            redirect('/public/admin/metas.php?metrica=' . $meta['metrica_id']);
+                            redirect('/admin/metas.php?metrica=' . $meta['metrica_id']);
                             break;
                         }
                     }
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         setFlash('error', 'Error al actualizar');
                     }
                 }
-                redirect('/public/admin/metas.php?metrica=' . $meta['metrica_id']);
+                redirect('/admin/metas.php?metrica=' . $meta['metrica_id']);
                 break;
 
             case 'eliminar':
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         setFlash('success', '✓ Meta eliminada');
                     }
                 }
-                redirect('/public/admin/metas.php');
+                redirect('/admin/metas.php');
                 break;
         }
     }
@@ -274,7 +274,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="col">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/admin/index.php'); ?>">Administración</a></li>
                                 <li class="breadcrumb-item active">Metas</li>
                             </ol>
                         </nav>
@@ -315,7 +315,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 <div class="list-group-item text-muted text-center py-4">
                                     <i class="ti ti-target mb-2" style="font-size: 2rem;"></i>
                                     <div>No hay métricas configuradas con metas</div>
-                                    <a href="<?php echo baseUrl('/public/admin/metricas.php'); ?>" class="btn btn-sm btn-primary mt-2">
+                                    <a href="<?php echo baseUrl('/admin/metricas.php'); ?>" class="btn btn-sm btn-primary mt-2">
                                         Ir a Métricas
                                     </a>
                                 </div>
@@ -1052,6 +1052,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

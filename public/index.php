@@ -80,7 +80,7 @@ $area_id = $_GET['area'] ?? ($areas[0]['id'] ?? null);
 if (!$area_id) {
     // Si es admin, redirigir al panel de administración para crear áreas
     if (in_array($user['rol'], ['super_admin', 'dept_admin', 'area_admin'])) {
-        header('Location: ' . baseUrl('/public/admin/index.php') . '?mensaje=sin_areas');
+        header('Location: ' . baseUrl('/admin/index.php') . '?mensaje=sin_areas');
         exit;
     }
 
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }));
 
         // Guardar en servidor
-        fetch('<?php echo baseUrl("/public/api/guardar-layout.php"); ?>', {
+        fetch('<?php echo baseUrl("/api/guardar-layout.php"); ?>', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -481,18 +481,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function agregarGrafico() {
-    window.location.href = '<?php echo baseUrl("/public/admin/graficos.php?area="); ?><?php echo $area_id; ?>';
+    window.location.href = '<?php echo baseUrl("/admin/graficos.php?area="); ?><?php echo $area_id; ?>';
 }
 
 function eliminarGrafico(id) {
     if (confirm('¿Eliminar este gráfico?')) {
-        window.location.href = '<?php echo baseUrl("/public/admin/graficos.php?area="); ?><?php echo $area_id; ?>&eliminar=' + id;
+        window.location.href = '<?php echo baseUrl("/admin/graficos.php?area="); ?><?php echo $area_id; ?>&eliminar=' + id;
     }
 }
 </script>
 
 <!-- Export Module -->
-<script src="<?php echo baseUrl('/public/assets/js/export.js'); ?>"></script>
+<script src="<?php echo baseUrl('/assets/js/export.js'); ?>"></script>
 
 <style>
 .grid-stack {
