@@ -24,10 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $usuarioModel->authenticate($username, $password);
 
         if ($user) {
-            // Login exitoso
+            // Login exitoso - Guardar en sesión
             $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_role'] = $user['rol'];
-            $_SESSION['user_name'] = $user['nombre'];
+            $_SESSION['user_rol'] = $user['rol'];  // Cambiado: user_rol (sin 'e')
+            $_SESSION['user_nombre'] = $user['nombre'];  // Cambiado: user_nombre
+            $_SESSION['user_email'] = $user['email'] ?? '';
+            $_SESSION['user_departamento_id'] = $user['departamento_id'] ?? null;
+            $_SESSION['user_area_id'] = $user['area_id'] ?? null;
+            $_SESSION['user_avatar_icono'] = $user['avatar_icono'] ?? null;
+            $_SESSION['user_avatar_color'] = $user['avatar_color'] ?? null;
+            $_SESSION['user_tema'] = $user['tema'] ?? 'light';
 
             // ✅ SEGURIDAD: Regenerar token CSRF después de login
             // Previene ataques de session fixation
