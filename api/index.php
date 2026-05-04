@@ -15,18 +15,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Services\ApiAuthService;
 
-// Obtener configuración
-$config = require __DIR__ . '/../config/database.php';
-$dsn = "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}";
-$db = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+// Conectar a BD usando constantes de config.php
+$dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+$options = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES => false
+];
+$db = new PDO($dsn, DB_USER, DB_PASS, $options);
 
 // Parsear ruta
 $request_uri = $_SERVER['REQUEST_URI'];
-$base_path = '/metricas/api';
+$base_path = BASE_URL . '/api';
 $path = str_replace($base_path, '', parse_url($request_uri, PHP_URL_PATH));
 $path = trim($path, '/');
 $segments = explode('/', $path);

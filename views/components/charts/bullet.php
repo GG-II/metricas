@@ -14,6 +14,7 @@ return [
         'descripcion' => 'Valor vs meta con rangos de rendimiento',
         'icono' => 'layout-distribute-horizontal',
         'requiere_metricas' => 1,
+        'requiere_metas' => true,
         'version' => '1.0'
     ],
 
@@ -35,17 +36,10 @@ return [
         <select name="metrica_id" class="form-select" required>
             <option value="">Seleccionar métrica...</option>
         </select>
-        <div class="form-hint">Solo métricas con metas definidas</div>
+        <div class="form-hint">Solo métricas con metas definidas. El período se toma del dashboard.</div>
     </div>
 
-    <div class="col-md-6">
-        <label class="form-label">Período</label>
-        <select name="periodo_id" class="form-select" required>
-            <option value="">Seleccionar período...</option>
-        </select>
-    </div>
-
-    <div class="col-md-6">
+    <div class="col-12">
         <label class="form-label">Altura (px)</label>
         <input type="number" name="altura" class="form-control" value="100" min="80" max="200">
     </div>
@@ -77,7 +71,6 @@ HTML;
     'process' => function($post) {
         return [
             'metrica_id' => (int)$post['metrica_id'],
-            'periodo_id' => (int)$post['periodo_id'],
             'altura' => (int)($post['altura'] ?? 100),
             'rango_bajo' => (int)($post['rango_bajo'] ?? 60),
             'rango_medio' => (int)($post['rango_medio'] ?? 80),
@@ -91,7 +84,6 @@ HTML;
     'load_config_js' => <<<'JS'
 function(form, config) {
     form.querySelector('[name="metrica_id"]').value = config.metrica_id;
-    form.querySelector('[name="periodo_id"]').value = config.periodo_id;
     form.querySelector('[name="altura"]').value = config.altura;
     form.querySelector('[name="rango_bajo"]').value = config.rango_bajo;
     form.querySelector('[name="rango_medio"]').value = config.rango_medio;
@@ -102,18 +94,21 @@ JS,
     // ==========================================
     // RENDERIZAR WIDGET
     // ==========================================
-    'render' => function($config, $metrica_data, $area_color) {
-        if (!isset($config['metrica_id']) || !isset($config['periodo_id'])) {
-            return '<div class="alert alert-warning m-3">Configura la métrica y período</div>';
+    'render' => function($config, $metrica_data, $area_color, $periodo = null) {
+        if (!isset($config['metrica_id'])) {
+            return '<div class="alert alert-warning m-3">Configura la métrica</div>';
+        }
+
+        if (!$periodo) {
+            return '<div class="alert alert-warning m-3">Selecciona un período en el dashboard</div>';
         }
 
         $valorMetricaModel = new \App\Models\ValorMetrica();
         $metaModel = new \App\Models\Meta();
         $metricaModel = new \App\Models\Metrica();
-        $periodoModel = new \App\Models\Periodo();
 
         $metrica_id = $config['metrica_id'];
-        $periodo_id = $config['periodo_id'];
+        $periodo_id = $periodo['id'];
         $altura = (int)($config['altura'] ?? 100);
         $rango_bajo = (int)($config['rango_bajo'] ?? 60);
         $rango_medio = (int)($config['rango_medio'] ?? 80);
@@ -121,25 +116,34 @@ JS,
 
         // Obtener información
         $metrica = $metricaModel->find($metrica_id);
-        $periodo = $periodoModel->find($periodo_id);
 
-        if (!$metrica || !$periodo) {
-            return '<div class="alert alert-danger m-3">Métrica o período no encontrado</div>';
+        if (!$metrica) {
+            return '<div class="alert alert-danger m-3">Métrica no encontrada</div>';
         }
 
         // Obtener valor actual
         $valor = $valorMetricaModel->getValor($metrica_id, $periodo_id);
         $valor_real = $valor ? ($metrica['tipo_valor'] === 'decimal' ? (float)$valor['valor_decimal'] : (int)$valor['valor_numero']) : 0;
 
-        // Obtener meta
+        // Obtener meta (primero mensual, si no existe usar anual promediada)
         $meta = $metaModel->getMetaAplicable($metrica_id, $periodo_id);
 
         if (!$meta) {
-            return '<div class="alert alert-info m-3">No hay meta definida</div>';
+            // Si no hay meta mensual, buscar meta anual y promediarla
+            $metaAnual = $metaModel->getMetaAnual($metrica_id, $periodo['ejercicio']);
+            if ($metaAnual) {
+                // Promediar la meta anual entre 12 meses
+                $valor_objetivo = (float)$metaAnual['valor_objetivo'] / 12;
+                $tipo_comparacion = $metaAnual['tipo_comparacion'];
+            } else {
+                return '<div class="alert alert-info m-3">No hay meta definida</div>';
+            }
+        } else {
+            $valor_objetivo = (float)$meta['valor_objetivo'];
+            $tipo_comparacion = $meta['tipo_comparacion'];
         }
 
-        $valor_objetivo = (float)$meta['valor_objetivo'];
-        $cumplimiento = $metaModel->calcularCumplimiento($valor_real, $valor_objetivo, $meta['tipo_comparacion']);
+        $cumplimiento = $metaModel->calcularCumplimiento($valor_real, $valor_objetivo, $tipo_comparacion);
 
         // Calcular valores de rangos
         $val_bajo = ($rango_bajo / 100) * $valor_objetivo;
@@ -180,68 +184,74 @@ JS,
     </div>
 </div>
 <script>
-(function() {
-    const options = {
-        series: [{
-            data: [{
-                x: 'Rendimiento',
-                y: {$valor_real},
-                goals: [{
-                    name: 'Meta',
-                    value: {$valor_objetivo},
-                    strokeWidth: 3,
-                    strokeColor: '#94a3b8'
-                }]
-            }]
-        }],
-        chart: {
-            type: 'bar',
-            height: {$altura},
-            sparkline: {
-                enabled: true
-            }
-        },
-        plotOptions: {
-            bar: {
-                horizontal: true,
-                barHeight: '50%'
-            }
-        },
-        colors: ['{$color_valor}'],
-        annotations: {
-            xaxis: [
-                {
-                    x: 0,
-                    x2: {$val_bajo},
-                    fillColor: '#fee2e2',
-                    opacity: 0.3
-                },
-                {
-                    x: {$val_bajo},
-                    x2: {$val_medio},
-                    fillColor: '#fef3c7',
-                    opacity: 0.3
-                },
-                {
-                    x: {$val_medio},
-                    x2: {$val_alto},
-                    fillColor: '#d1fae5',
-                    opacity: 0.3
-                }
-            ]
-        },
-        tooltip: {
-            y: {
-                formatter: function(val) {
-                    return val + ' {$metrica['unidad']}';
-                }
-            }
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: [{
+                data: [{
+                    x: 'Rendimiento',
+                    y: {$valor_real},
+                    goals: [{
+                        name: 'Meta',
+                        value: {$valor_objetivo},
+                        strokeWidth: 3,
+                        strokeColor: '#94a3b8'
+                    }]
+                }]
+            }],
+            chart: {
+                type: 'bar',
+                height: {$altura},
+                sparkline: {
+                    enabled: true
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    barHeight: '50%'
+                }
+            },
+            colors: ['{$color_valor}'],
+            annotations: {
+                xaxis: [
+                    {
+                        x: 0,
+                        x2: {$val_bajo},
+                        fillColor: '#fee2e2',
+                        opacity: 0.3
+                    },
+                    {
+                        x: {$val_bajo},
+                        x2: {$val_medio},
+                        fillColor: '#fef3c7',
+                        opacity: 0.3
+                    },
+                    {
+                        x: {$val_medio},
+                        x2: {$val_alto},
+                        fillColor: '#d1fae5',
+                        opacity: 0.3
+                    }
+                ]
+            },
+            tooltip: {
+                y: {
+                    formatter: function(val) {
+                        return val + ' {$metrica['unidad']}';
+                    }
+                }
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

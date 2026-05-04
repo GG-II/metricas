@@ -53,9 +53,13 @@ if (!function_exists('getDB')) {
         static $db = null;
 
         if ($db === null) {
-            $config = require __DIR__ . '/../../config/database.php';
-            $dsn = "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}";
-            $db = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ];
+            $db = new PDO($dsn, DB_USER, DB_PASS, $options);
         }
 
         return $db;
@@ -67,13 +71,10 @@ if (!function_exists('getDB')) {
  */
 if (!function_exists('redirect')) {
     function redirect($url) {
-        $config = require __DIR__ . '/../../config/app.php';
-        $base_url = $config['base_url'];
-
         if (strpos($url, 'http') === 0) {
             header('Location: ' . $url);
         } else {
-            header('Location: ' . $base_url . $url);
+            header('Location: ' . BASE_URL . $url);
         }
         exit;
     }
@@ -105,8 +106,7 @@ if (!function_exists('e')) {
  */
 if (!function_exists('baseUrl')) {
     function baseUrl($path = '') {
-        $config = require __DIR__ . '/../../config/app.php';
-        return $config['base_url'] . $path;
+        return BASE_URL . $path;
     }
 }
 

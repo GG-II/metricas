@@ -11,10 +11,28 @@ logs/*.log
 # Archivos de configuración local
 .env
 .env.local
-config.php
-config.local.php
-config.production.php
-config.development.php
+.env.production
+.env.development
+
+# Scripts temporales y de desarrollo (en raíz del proyecto)
+/add_remaining_charts.php
+/cache-manager.php
+/check_data.php
+/check_status.php
+/cleanup_database.php
+/cleanup_test_data.php
+/clear-cache.php
+/create_test_environment.php
+/debug-metricas.php
+/fix_chart_configs.php
+/recalcular_metricas.php
+/run_global_migration.php
+/run_migration.php
+/run_migration_*.php
+/run_seed_*.php
+/seed_*.php
+/test_*.php
+/verify_*.php
 
 # Uploads
 public/assets/uploads/*

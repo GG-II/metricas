@@ -42,6 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'activo' => 1
                 ];
 
+                // Validar que area_admin tenga area_id
+                $validation = $usuarioModel->validateAreaAdmin($data);
+                if (!$validation['valid']) {
+                    setFlash('error', $validation['error']);
+                    redirect('/public/admin/usuarios.php');
+                    break;
+                }
+
                 if ($usuarioModel->create($data)) {
                     setFlash('success', 'Usuario creado exitosamente');
                 } else {
@@ -68,6 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'departamento_id' => $_POST['departamento_id'] ? (int)$_POST['departamento_id'] : null,
                     'area_id' => $_POST['area_id'] ? (int)$_POST['area_id'] : null
                 ];
+
+                // Validar que area_admin tenga area_id
+                $validation = $usuarioModel->validateAreaAdmin($data);
+                if (!$validation['valid']) {
+                    setFlash('error', $validation['error']);
+                    redirect('/public/admin/usuarios.php');
+                    break;
+                }
 
                 // Solo actualizar password si se proporciona
                 if (!empty($_POST['password'])) {
@@ -209,6 +225,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     $roles = [
                                         'super_admin' => ['nombre' => 'Super Admin', 'class' => 'bg-red'],
                                         'dept_admin' => ['nombre' => 'Admin Departamento', 'class' => 'bg-blue'],
+                                        'area_admin' => ['nombre' => 'Admin de Área', 'class' => 'bg-purple'],
                                         'dept_viewer' => ['nombre' => 'Visualizador', 'class' => 'bg-green']
                                     ];
                                     $rol_info = $roles[$u['rol']] ?? ['nombre' => $u['rol'], 'class' => 'bg-secondary'];
@@ -349,14 +366,18 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                             <option value="dept_admin" <?php echo ($editando && $editando['rol'] == 'dept_admin') ? 'selected' : ''; ?>>
                                 Admin de Departamento
                             </option>
+                            <option value="area_admin" <?php echo ($editando && $editando['rol'] == 'area_admin') ? 'selected' : ''; ?>>
+                                Admin de Área
+                            </option>
                             <option value="dept_viewer" <?php echo ($editando && $editando['rol'] == 'dept_viewer') ? 'selected' : ''; ?>>
                                 Visualizador (solo lectura)
                             </option>
                         </select>
                         <div class="form-hint">
                             <strong>Super Admin:</strong> Acceso completo al sistema<br>
-                            <strong>Admin Departamento:</strong> Gestiona un departamento específico<br>
-                            <strong>Visualizador:</strong> Solo puede ver áreas asignadas
+                            <strong>Admin Departamento:</strong> Gestiona todas las áreas de un departamento<br>
+                            <strong>Admin de Área:</strong> Gestiona solo un área específica<br>
+                            <strong>Visualizador:</strong> Solo lectura de todo el departamento
                         </div>
                     </div>
 
@@ -373,9 +394,8 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <div class="form-hint">
-                                    <strong>Admin Departamento:</strong> Acceso a todas las áreas del departamento<br>
-                                    <strong>Visualizador:</strong> Acceso solo a un área específica
+                                <div class="form-hint" id="hint-dept">
+                                    Necesario para seleccionar el área específica
                                 </div>
                             </div>
                         </div>
@@ -391,7 +411,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     </option>
                                     <?php endif; ?>
                                 </select>
-                                <div class="form-hint">Solo para Visualizadores</div>
+                                <div class="form-hint" id="hint-area">Para Admin de Área (edición) y Visualizador (lectura)</div>
                             </div>
                         </div>
                     </div>
@@ -421,6 +441,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateRequiredFields() {
         const rol = rolSelect.value;
         const asignacionContainer = document.getElementById('asignacion-container');
+        const areaContainer = document.getElementById('area-container');
+        const hintDept = document.getElementById('hint-dept');
+        const hintArea = document.getElementById('hint-area');
 
         if (rol === 'super_admin') {
             deptSelect.removeAttribute('required');
@@ -435,14 +458,26 @@ document.addEventListener('DOMContentLoaded', function() {
             labelDept.classList.add('required');
             labelArea.classList.remove('required');
             asignacionContainer.style.display = '';
-            document.getElementById('area-container').style.display = 'none';
-        } else if (rol === 'dept_viewer') {
+            areaContainer.style.display = 'none';
+            hintDept.innerHTML = '<strong>Admin Departamento:</strong> Acceso a todas las áreas del departamento';
+        } else if (rol === 'area_admin') {
             deptSelect.setAttribute('required', 'required');
             areaSelect.setAttribute('required', 'required');
             labelDept.classList.add('required');
             labelArea.classList.add('required');
             asignacionContainer.style.display = '';
-            document.getElementById('area-container').style.display = '';
+            areaContainer.style.display = '';
+            hintDept.innerHTML = '<strong>Admin de Área:</strong> Selecciona departamento para filtrar áreas';
+            hintArea.innerHTML = '<strong>Admin de Área:</strong> Puede ver y editar solo esta área';
+        } else if (rol === 'dept_viewer') {
+            deptSelect.setAttribute('required', 'required');
+            areaSelect.removeAttribute('required'); // No es obligatorio para viewer
+            labelDept.classList.add('required');
+            labelArea.classList.remove('required');
+            asignacionContainer.style.display = '';
+            areaContainer.style.display = '';
+            hintDept.innerHTML = '<strong>Visualizador:</strong> Solo lectura de todo el departamento';
+            hintArea.innerHTML = 'Opcional: restringir a un área específica (si se deja vacío, ve todo el departamento)';
         }
     }
 

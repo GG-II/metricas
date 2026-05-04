@@ -150,8 +150,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Filtro por área
-$area_filtro = isset($_GET['area']) ? (int)$_GET['area'] : null;
+// Filtro por área - Auto-seleccionar para area_admin
+if ($user['rol'] === 'area_admin') {
+    $area_filtro = $user['area_id'];
+} else {
+    $area_filtro = isset($_GET['area']) ? (int)$_GET['area'] : null;
+}
 
 // Filtro para mostrar activas o todas (incluyendo eliminadas)
 $mostrar_filtro = $_GET['mostrar'] ?? 'activas';
@@ -181,6 +185,16 @@ if ($mostrar_filtro === 'activas') {
         return $m['activo'] == 1;
     });
 }
+
+// Paginación
+$items_por_pagina = 20;
+$total_metricas = count($metricas);
+$total_paginas = ceil($total_metricas / $items_por_pagina);
+$pagina_actual = isset($_GET['pagina']) ? max(1, min((int)$_GET['pagina'], $total_paginas)) : 1;
+$offset = ($pagina_actual - 1) * $items_por_pagina;
+
+// Aplicar paginación
+$metricas = array_slice($metricas, $offset, $items_por_pagina);
 
 // Obtener departamentos permitidos para el selector
 $departamentos = PermissionService::getDepartamentosPermitidos($user);
@@ -227,31 +241,45 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     </div>
                     <div class="col-auto">
                         <div class="btn-list">
-                            <?php if (!$area_actual): ?>
+                            <?php if ($user['rol'] !== 'area_admin'): ?>
                             <div class="dropdown">
-                                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                        id="dropdownAreaFilter" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="ti ti-filter me-1"></i>
-                                    Filtrar por Área
+                                    <?php echo $area_actual ? e($area_actual['nombre']) : 'Filtrar por Área'; ?>
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end" style="max-height: 400px; overflow-y: auto;">
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAreaFilter"
+                                     style="max-height: 400px; overflow-y: auto; min-width: 250px;">
                                     <a class="dropdown-item <?php echo !$area_filtro ? 'active' : ''; ?>"
                                        href="<?php echo baseUrl('/public/admin/metricas.php'); ?>">
+                                        <i class="ti ti-layout-grid me-2"></i>
                                         Todas las áreas
                                     </a>
                                     <div class="dropdown-divider"></div>
-                                    <?php foreach ($departamentos as $dept):
+                                    <?php
+                                    $hay_areas = false;
+                                    foreach ($departamentos as $dept):
                                         $areas = $areaModel->getByDepartamento($dept['id']);
                                         if (!empty($areas)):
+                                            $hay_areas = true;
                                     ?>
                                         <h6 class="dropdown-header"><?php echo e($dept['nombre']); ?></h6>
                                         <?php foreach ($areas as $area): ?>
-                                        <a class="dropdown-item"
+                                        <a class="dropdown-item <?php echo $area_filtro == $area['id'] ? 'active' : ''; ?>"
                                            href="<?php echo baseUrl('/public/admin/metricas.php?area=' . $area['id']); ?>">
                                             <i class="ti ti-<?php echo e($area['icono']); ?> me-2"></i>
                                             <?php echo e($area['nombre']); ?>
                                         </a>
                                         <?php endforeach; ?>
-                                    <?php endif; endforeach; ?>
+                                    <?php
+                                        endif;
+                                    endforeach;
+
+                                    if (!$hay_areas): ?>
+                                        <div class="dropdown-item text-muted disabled">
+                                            <small>No hay áreas disponibles</small>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <?php endif; ?>
@@ -412,6 +440,67 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         </table>
                     </div>
                 </div>
+
+                <!-- Paginación -->
+                <?php if ($total_paginas > 1): ?>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            Mostrando <?php echo $offset + 1; ?> - <?php echo min($offset + $items_por_pagina, $total_metricas); ?>
+                            de <?php echo $total_metricas; ?> métricas
+                        </div>
+                        <ul class="pagination m-0">
+                            <?php if ($pagina_actual > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina_actual - 1])); ?>">
+                                    <i class="ti ti-chevron-left"></i> Anterior
+                                </a>
+                            </li>
+                            <?php endif; ?>
+
+                            <?php
+                            $rango_inicio = max(1, $pagina_actual - 2);
+                            $rango_fin = min($total_paginas, $pagina_actual + 2);
+
+                            if ($rango_inicio > 1): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => 1])); ?>">1</a>
+                                </li>
+                                <?php if ($rango_inicio > 2): ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <?php endif; ?>
+                            <?php endif; ?>
+
+                            <?php for ($i = $rango_inicio; $i <= $rango_fin; $i++): ?>
+                            <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
+                                <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $i])); ?>">
+                                    <?php echo $i; ?>
+                                </a>
+                            </li>
+                            <?php endfor; ?>
+
+                            <?php if ($rango_fin < $total_paginas): ?>
+                                <?php if ($rango_fin < $total_paginas - 1): ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <?php endif; ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $total_paginas])); ?>">
+                                        <?php echo $total_paginas; ?>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php if ($pagina_actual < $total_paginas): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?<?php echo http_build_query(array_merge($_GET, ['pagina' => $pagina_actual + 1])); ?>">
+                                    Siguiente <i class="ti ti-chevron-right"></i>
+                                </a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                </div>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div>
@@ -436,40 +525,52 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         <input type="hidden" name="id" value="<?php echo $editando['id']; ?>">
                     <?php endif; ?>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label required">Departamento</label>
-                                <select id="departamento-select" class="form-select" required>
-                                    <option value="">Seleccionar departamento...</option>
-                                    <?php foreach ($departamentos as $dept): ?>
-                                    <option value="<?php echo $dept['id']; ?>"
-                                            <?php echo ($editando && $editando['departamento_id'] == $dept['id']) || ($area_actual && $area_actual['departamento_id'] == $dept['id']) ? 'selected' : ''; ?>>
-                                        <?php echo e($dept['nombre']); ?>
-                                    </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                    <?php if ($user['rol'] === 'area_admin' && $area_actual): ?>
+                        <!-- Area admin: mostrar área asignada (solo lectura) -->
+                        <div class="mb-3">
+                            <label class="form-label">Área Asignada</label>
+                            <input type="text" class="form-control"
+                                   value="<?php echo e($area_actual['departamento_nombre'] ?? ''); ?> › <?php echo e($area_actual['nombre'] ?? ''); ?>"
+                                   readonly>
+                            <input type="hidden" name="area_id" value="<?php echo $area_actual['id']; ?>">
                         </div>
+                    <?php else: ?>
+                        <!-- Otros roles: selector normal de departamento/área -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">Departamento</label>
+                                    <select id="departamento-select" class="form-select" required>
+                                        <option value="">Seleccionar departamento...</option>
+                                        <?php foreach ($departamentos as $dept): ?>
+                                        <option value="<?php echo $dept['id']; ?>"
+                                                <?php echo ($editando && $editando['departamento_id'] == $dept['id']) || ($area_actual && $area_actual['departamento_id'] == $dept['id']) ? 'selected' : ''; ?>>
+                                            <?php echo e($dept['nombre']); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
 
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label required">Área</label>
-                                <select name="area_id" id="area-select" class="form-select" required>
-                                    <option value="">Seleccionar área...</option>
-                                    <?php if ($editando): ?>
-                                    <option value="<?php echo $editando['area_id']; ?>" selected>
-                                        <?php echo e($editando['area_nombre']); ?>
-                                    </option>
-                                    <?php elseif ($area_actual): ?>
-                                    <option value="<?php echo $area_actual['id']; ?>" selected>
-                                        <?php echo e($area_actual['nombre']); ?>
-                                    </option>
-                                    <?php endif; ?>
-                                </select>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required">Área</label>
+                                    <select name="area_id" id="area-select" class="form-select" required>
+                                        <option value="">Seleccionar área...</option>
+                                        <?php if ($editando): ?>
+                                        <option value="<?php echo $editando['area_id']; ?>" selected>
+                                            <?php echo e($editando['area_nombre']); ?>
+                                        </option>
+                                        <?php elseif ($area_actual): ?>
+                                        <option value="<?php echo $area_actual['id']; ?>" selected>
+                                            <?php echo e($area_actual['nombre']); ?>
+                                        </option>
+                                        <?php endif; ?>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <div class="mb-3">
                         <label class="form-label required">Nombre de la Métrica</label>
@@ -604,7 +705,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función helper para verificar y cargar métricas
     function verificarYCargarMetricas() {
-        const areaId = areaSelect.value;
+        // Obtener area_id del select o del hidden input (para area_admin)
+        const areaId = areaSelect ? areaSelect.value : document.querySelector('input[name="area_id"]')?.value;
         const esCalculada = checkboxCalculada.checked;
 
         console.log('Verificar y cargar:', { areaId, esCalculada });
@@ -623,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Cargar áreas al seleccionar departamento
-    deptSelect.addEventListener('change', function() {
+    deptSelect?.addEventListener('change', function() {
         const deptId = this.value;
         areaSelect.innerHTML = '<option value="">Cargando...</option>';
         componentesList.innerHTML = '<p class="text-muted text-center py-3"><small>Primero selecciona un área</small></p>';
@@ -652,7 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Cargar métricas disponibles al seleccionar área
-    areaSelect.addEventListener('change', function() {
+    areaSelect?.addEventListener('change', function() {
         verificarYCargarMetricas();
     });
 
@@ -859,6 +961,9 @@ function exportarMetricasActuales() {
     ExportModule.showExportModal(metricasIds);
 }
 </script>
+
+<!-- Bootstrap 5 JS (incluye Dropdown) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Export Module -->
 <script src="<?php echo baseUrl('/public/assets/js/export.js'); ?>"></script>

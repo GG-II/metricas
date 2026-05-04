@@ -24,12 +24,20 @@ class Model {
         static $db = null;
 
         if ($db === null) {
-            $config = require __DIR__ . '/../../config/database.php';
+            // Cargar config.php si las constantes no están definidas
+            if (!defined('DB_HOST')) {
+                require_once __DIR__ . '/../../config.php';
+            }
 
-            $dsn = "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}";
+            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ];
 
             try {
-                $db = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+                $db = new PDO($dsn, DB_USER, DB_PASS, $options);
             } catch (PDOException $e) {
                 die('Error de conexión a la base de datos: ' . $e->getMessage());
             }

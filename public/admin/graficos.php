@@ -98,17 +98,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $grafico = $graficoModel->find($id);
 
                 if ($grafico && PermissionService::canEditArea($user, $grafico['area_id'])) {
-                    $graficoModel->update($id, ['activo' => 0]);
-                    setFlash('success', '✓ Gráfico eliminado');
+                    $graficoModel->delete($id);
+                    setFlash('success', '✓ Gráfico eliminado permanentemente');
                 }
-                redirect('/public/admin/graficos.php');
+                redirect('/public/admin/graficos.php?area=' . ($grafico['area_id'] ?? ''));
                 break;
         }
     }
 }
 
 // Obtener área seleccionada
-$area_id = $_GET['area'] ?? null;
+// Para area_admin, forzar su área asignada
+if ($user['rol'] === 'area_admin') {
+    $area_id = $user['area_id'];
+} else {
+    $area_id = $_GET['area'] ?? null;
+}
+
 $area = null;
 $metricas = [];
 $graficos = [];
@@ -121,6 +127,16 @@ if ($area_id) {
     $area = $areaModel->findWithDepartamento($area_id);
     $metricas = $metricaModel->getByArea($area_id, true);
     $graficos = $graficoModel->getByArea($area_id, false);
+
+    // Marcar qué métricas tienen metas definidas
+    $db = getDB();
+    $stmt = $db->query("SELECT DISTINCT metrica_id FROM metas_metricas WHERE activo = 1");
+    $metricas_con_meta = array_column($stmt->fetchAll(), 'metrica_id');
+
+    foreach ($metricas as &$metrica) {
+        $metrica['tiene_meta'] = in_array($metrica['id'], $metricas_con_meta);
+    }
+    unset($metrica);
 }
 
 // Obtener todos los tipos de gráficos
@@ -174,15 +190,37 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
             <!-- Flash Messages -->
             <?php if (isset($_SESSION['flash']) && isset($_SESSION['flash']['type']) && isset($_SESSION['flash']['message'])): ?>
-                <div class="alert alert-<?php echo $_SESSION['flash']['type']; ?> alert-dismissible fade show" role="alert">
-                    <?php echo e($_SESSION['flash']['message']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const type = '<?php echo $_SESSION['flash']['type']; ?>';
+                    const message = '<?php echo addslashes($_SESSION['flash']['message']); ?>';
+
+                    const iconMap = {
+                        'success': 'success',
+                        'error': 'error',
+                        'warning': 'warning',
+                        'info': 'info'
+                    };
+
+                    Swal.fire({
+                        icon: iconMap[type] || 'info',
+                        title: message,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'swal-toast-custom'
+                        }
+                    });
+                });
+                </script>
                 <?php unset($_SESSION['flash']); ?>
             <?php endif; ?>
 
             <!-- Selector de Área -->
-            <?php if (!$area): ?>
+            <?php if (!$area && $user['rol'] !== 'area_admin'): ?>
             <div class="card">
                 <div class="card-body">
                     <h3 class="card-title mb-3">Selecciona un Área</h3>
@@ -262,7 +300,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     <a href="<?php echo baseUrl('/public/index.php?area=' . $area_id . '&edit=1'); ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="ti ti-layout"></i> Ver en Dashboard
                                     </a>
-                                    <form method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este gráfico?');">
+                                    <form method="POST" class="d-inline" onsubmit="confirmarEliminacion(event, <?php echo $grafico['id']; ?>, '<?php echo addslashes($grafico['titulo']); ?>')">
                                         <input type="hidden" name="action" value="eliminar">
                                         <input type="hidden" name="id" value="<?php echo $grafico['id']; ?>">
                                         <button type="submit" class="btn btn-sm btn-ghost-danger">
@@ -499,8 +537,17 @@ function cargarFormularioDinamico(tipoId) {
     const container = document.getElementById('configuracion-dinamica');
     let html = chartForms[tipoId] || '<p>Formulario no disponible</p>';
 
+    // Verificar si este tipo de gráfico requiere metas
+    const tipoInfo = tiposGraficos[tipoId];
+    const requiereMetas = tipoInfo?.requiere_metas || false;
+
+    // Filtrar métricas según si el gráfico requiere metas
+    const metricasFiltradas = requiereMetas
+        ? metricasArea.filter(m => m.tiene_meta)
+        : metricasArea;
+
     // Reemplazar TODOS los selects de métricas con las opciones reales
-    const selectOptions = metricasArea.map(m =>
+    const selectOptions = metricasFiltradas.map(m =>
         `<option value="${m.id}">${m.nombre} (${m.unidad || 'sin unidad'})</option>`
     ).join('');
 
@@ -515,8 +562,10 @@ function cargarFormularioDinamico(tipoId) {
             // Verificar si es required
             const isRequired = match.includes('required');
 
+            const placeholder = requiereMetas ? 'Seleccionar métrica con meta...' : 'Seleccionar métrica...';
+
             return `<select name="${originalName}" class="form-select" ${isRequired ? 'required' : ''}>
-                <option value="">Seleccionar métrica...</option>
+                <option value="">${placeholder}</option>
                 ${selectOptions}
             </select>`;
         }
@@ -616,8 +665,90 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
 <script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
+
+<style>
+/* SweetAlert2 Dark Mode */
+[data-bs-theme="dark"] .swal2-popup {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .swal2-title {
+    color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .swal2-html-container {
+    color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] .swal2-confirm {
+    background-color: #dc2626 !important;
+}
+
+[data-bs-theme="dark"] .swal2-cancel {
+    background-color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .swal2-icon.swal2-warning {
+    border-color: #f59e0b !important;
+    color: #f59e0b !important;
+}
+
+[data-bs-theme="dark"] .swal2-icon.swal2-success {
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+}
+
+[data-bs-theme="dark"] .swal2-icon.swal2-error {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+/* Toast notifications */
+[data-bs-theme="dark"] .swal2-toast {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+}
+
+[data-bs-theme="dark"] .swal2-toast .swal2-title {
+    color: #f1f5f9 !important;
+}
+
+/* Light mode toast */
+.swal2-toast {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>
+
+<script>
+function confirmarEliminacion(event, graficoId, graficoNombre) {
+    event.preventDefault();
+
+    Swal.fire({
+        title: '¿Eliminar gráfico?',
+        html: `Se eliminará permanentemente:<br><strong>${graficoNombre}</strong>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="ti ti-trash me-1"></i> Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            popup: 'swal-popup-custom'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Enviar formulario
+            event.target.submit();
+        }
+    });
+}
+</script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

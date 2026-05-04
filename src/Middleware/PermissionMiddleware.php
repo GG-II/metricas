@@ -22,12 +22,12 @@ class PermissionMiddleware {
     }
 
     /**
-     * Requiere rol de admin (super_admin o dept_admin)
+     * Requiere rol de admin (super_admin, dept_admin o area_admin)
      */
     public static function requireAdmin() {
         $user = getCurrentUser();
 
-        if (!$user || !in_array($user['rol'], ['super_admin', 'dept_admin'])) {
+        if (!$user || !in_array($user['rol'], ['super_admin', 'dept_admin', 'area_admin'])) {
             http_response_code(403);
             die('Acceso denegado: Se requiere rol de Administrador');
         }

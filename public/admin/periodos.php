@@ -124,7 +124,32 @@ $periodos_por_anio = [];
 foreach ($periodos as $periodo) {
     $periodos_por_anio[$periodo['ejercicio']][] = $periodo;
 }
+
+// Ordenar períodos dentro de cada año de enero (1) a diciembre (12)
+foreach ($periodos_por_anio as $anio => &$periodos_anio) {
+    usort($periodos_anio, function($a, $b) {
+        return $a['periodo'] - $b['periodo'];
+    });
+}
+unset($periodos_anio); // Romper referencia
+
 krsort($periodos_por_anio); // Ordenar años descendente
+
+// Paginación por año
+$anios_disponibles = array_keys($periodos_por_anio);
+$anio_seleccionado = isset($_GET['anio']) ? (int)$_GET['anio'] : (int)date('Y');
+
+// Si el año seleccionado no existe, usar el primer año disponible
+if (!in_array($anio_seleccionado, $anios_disponibles) && !empty($anios_disponibles)) {
+    $anio_seleccionado = $anios_disponibles[0];
+}
+
+// Filtrar solo el año seleccionado
+if (isset($periodos_por_anio[$anio_seleccionado])) {
+    $periodos_mostrar = [$anio_seleccionado => $periodos_por_anio[$anio_seleccionado]];
+} else {
+    $periodos_mostrar = [];
+}
 
 $pageTitle = 'Gestión de Períodos';
 require_once __DIR__ . '/../../views/layouts/header.php';
@@ -150,16 +175,10 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         </h2>
                     </div>
                     <div class="col-auto">
-                        <div class="btn-list">
-                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalGenerarAnio">
-                                <i class="ti ti-calendar-plus me-1"></i>
-                                Generar Año Completo
-                            </button>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPeriodo">
-                                <i class="ti ti-plus me-1"></i>
-                                Nuevo Período
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalGenerarAnio">
+                            <i class="ti ti-calendar-plus me-1"></i>
+                            Generar Año Completo
+                        </button>
                     </div>
                 </div>
             </div>
@@ -173,7 +192,29 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                 <?php unset($_SESSION['flash']); ?>
             <?php endif; ?>
 
-            <!-- Períodos agrupados por año -->
+            <!-- Paginación de Años -->
+            <?php if (!empty($anios_disponibles)): ?>
+            <div class="card mb-3">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <i class="ti ti-calendar me-1"></i>
+                            Mostrando períodos de: <strong><?php echo $anio_seleccionado; ?></strong>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <?php foreach ($anios_disponibles as $anio): ?>
+                            <a href="?anio=<?php echo $anio; ?>"
+                               class="btn btn-sm <?php echo $anio === $anio_seleccionado ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                <?php echo $anio; ?>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- Períodos del año seleccionado -->
             <?php if (empty($periodos_por_anio)): ?>
                 <div class="empty text-center py-5">
                     <div class="empty-icon mb-3">
@@ -189,7 +230,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     </div>
                 </div>
             <?php else: ?>
-                <?php foreach ($periodos_por_anio as $anio => $periodos_anio): ?>
+                <?php foreach ($periodos_mostrar as $anio => $periodos_anio): ?>
                 <div class="card mb-3">
                     <div class="card-header">
                         <h3 class="card-title">
@@ -380,6 +421,9 @@ require_once __DIR__ . '/../../views/layouts/header.php';
         </div>
     </div>
 </div>
+
+<!-- Bootstrap 5 JS (incluye Dropdown) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>

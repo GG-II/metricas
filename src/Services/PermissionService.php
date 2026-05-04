@@ -51,8 +51,12 @@ class PermissionService {
             return $area['departamento_id'] == $user['departamento_id'];
         }
 
-        if ($user['rol'] === 'dept_viewer') {
+        if ($user['rol'] === 'area_admin') {
             return $area_id == $user['area_id'];
+        }
+
+        if ($user['rol'] === 'dept_viewer') {
+            return $area['departamento_id'] == $user['departamento_id'];
         }
 
         return false;
@@ -73,6 +77,10 @@ class PermissionService {
             $area = $areaModel->find($area_id);
 
             return $area && $area['departamento_id'] == $user['departamento_id'];
+        }
+
+        if ($user['rol'] === 'area_admin') {
+            return $area_id == $user['area_id'];
         }
 
         return false;
@@ -116,9 +124,13 @@ class PermissionService {
             return $areaModel->getByDepartamento($user['departamento_id']);
         }
 
-        if ($user['rol'] === 'dept_viewer' && $user['area_id']) {
+        if ($user['rol'] === 'area_admin' && $user['area_id']) {
             $area = $areaModel->find($user['area_id']);
             return $area ? [$area] : [];
+        }
+
+        if ($user['rol'] === 'dept_viewer' && $user['departamento_id']) {
+            return $areaModel->getByDepartamento($user['departamento_id']);
         }
 
         return [];
@@ -136,6 +148,29 @@ class PermissionService {
 
         if ($user['rol'] === 'dept_admin') {
             return $user['departamento_id'] == $departamento_id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Verifica si el usuario puede crear métricas o gráficos en un área
+     */
+    public static function canCreateInArea($user, $area_id) {
+        if (!$user) return false;
+
+        if ($user['rol'] === 'super_admin') {
+            return true;
+        }
+
+        if ($user['rol'] === 'area_admin') {
+            return $area_id == $user['area_id'];
+        }
+
+        if ($user['rol'] === 'dept_admin') {
+            $areaModel = new Area();
+            $area = $areaModel->find($area_id);
+            return $area && $area['departamento_id'] == $user['departamento_id'];
         }
 
         return false;

@@ -136,7 +136,8 @@ JS,
             9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dic'
         ];
 
-        foreach ($config['metricas'] as $idx => $metrica_id) {
+        foreach ($config['metricas'] as $idx => $metrica_config) {
+            $metrica_id = is_array($metrica_config) ? $metrica_config['id'] : $metrica_config;
             $metrica = $metricaModel->find($metrica_id);
             if (!$metrica) continue;
 
@@ -171,55 +172,61 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: {$series_json},
-        chart: {
-            type: 'line',
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: true }
-        },
-        colors: {$colores_json},
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: '{$curve}',
-            width: 2
-        },
-        markers: {
-            size: 4,
-            hover: {
-                size: 6
-            }
-        },
-        xaxis: {
-            categories: {$categorias_json}
-        },
-        yaxis: {
-            labels: {
-                formatter: function(val) {
-                    return Math.round(val);
-                }
-            }
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left'
-        },
-        grid: {
-            borderColor: '#e2e8f0'
-        },
-        tooltip: {
-            shared: true,
-            intersect: false
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: {$series_json},
+            chart: {
+                type: 'line',
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: true }
+            },
+            colors: {$colores_json},
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: '{$curve}',
+                width: 2
+            },
+            markers: {
+                size: 4,
+                hover: {
+                    size: 6
+                }
+            },
+            xaxis: {
+                categories: {$categorias_json}
+            },
+            yaxis: {
+                labels: {
+                    formatter: function(val) {
+                        return Math.round(val);
+                    }
+                }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left'
+            },
+            grid: {
+                borderColor: '#e2e8f0'
+            },
+            tooltip: {
+                shared: true,
+                intersect: false
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

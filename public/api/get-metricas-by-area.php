@@ -32,9 +32,9 @@ if (!PermissionService::canViewArea($user, $area_id)) {
     exit;
 }
 
-// Verificar si es área global
-$area = $areaModel->find($area_id);
-$es_area_global = ($area && $area['slug'] === 'metricas-consolidadas');
+// Verificar si es área global usando el servicio
+// Detecta CUALQUIER área dentro de un departamento tipo='global'
+$es_area_global = $calculadaService->isAreaGlobal($area_id);
 
 // Si es área global, solo super_admin puede acceder
 if ($es_area_global && $user['rol'] !== 'super_admin') {

@@ -146,68 +146,74 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: [{
-            name: '{$metrica_y['nombre']} vs {$metrica_x['nombre']}',
-            data: {$datos_json}
-        }],
-        chart: {
-            type: 'scatter',
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: true },
-            zoom: {
-                enabled: true,
-                type: 'xy'
-            }
-        },
-        colors: ['{$color}'],
-        markers: {
-            size: 6,
-            hover: {
-                size: 8
-            }
-        },
-        xaxis: {
-            title: {
-                text: '{$metrica_x['nombre']} ({$metrica_x['unidad']})'
-            },
-            tickAmount: 10
-        },
-        yaxis: {
-            title: {
-                text: '{$metrica_y['nombre']} ({$metrica_y['unidad']})'
-            },
-            tickAmount: 7
-        },
-        grid: {
-            borderColor: '#e2e8f0',
-            xaxis: {
-                lines: {
-                    show: true
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
+
+        const options = {
+            series: [{
+                name: '{$metrica_y['nombre']} vs {$metrica_x['nombre']}',
+                data: {$datos_json}
+            }],
+            chart: {
+                type: 'scatter',
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: true },
+                zoom: {
+                    enabled: true,
+                    type: 'xy'
                 }
+            },
+            colors: ['{$color}'],
+            markers: {
+                size: 6,
+                hover: {
+                    size: 8
+                }
+            },
+            xaxis: {
+                title: {
+                    text: '{$metrica_x['nombre']} ({$metrica_x['unidad']})'
+                },
+                tickAmount: 10
             },
             yaxis: {
-                lines: {
-                    show: true
+                title: {
+                    text: '{$metrica_y['nombre']} ({$metrica_y['unidad']})'
+                },
+                tickAmount: 7
+            },
+            grid: {
+                borderColor: '#e2e8f0',
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                },
+                yaxis: {
+                    lines: {
+                        show: true
+                    }
+                }
+            },
+            tooltip: {
+                custom: function({seriesIndex, dataPointIndex, w}) {
+                    const data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+                    return '<div class="p-2">' +
+                        '<div><strong>{$metrica_x['nombre']}:</strong> ' + data[0] + ' {$metrica_x['unidad']}</div>' +
+                        '<div><strong>{$metrica_y['nombre']}:</strong> ' + data[1] + ' {$metrica_y['unidad']}</div>' +
+                        '</div>';
                 }
             }
-        },
-        tooltip: {
-            custom: function({seriesIndex, dataPointIndex, w}) {
-                const data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
-                return '<div class="p-2">' +
-                    '<div><strong>{$metrica_x['nombre']}:</strong> ' + data[0] + ' {$metrica_x['unidad']}</div>' +
-                    '<div><strong>{$metrica_y['nombre']}:</strong> ' + data[1] + ' {$metrica_y['unidad']}</div>' +
-                    '</div>';
-            }
-        }
-    };
+        };
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

@@ -157,76 +157,82 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: [{
-            name: '{$metrica['nombre']}',
-            data: {$valores_json}
-        }],
-        chart: {
-            type: 'area',
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: false },
-            zoom: { enabled: false }
-        },
-        colors: ['{$color}'],
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: '{$curve}',
-            width: 2
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.45,
-                opacityTo: 0.05,
-                stops: [0, 90, 100]
-            }
-        },
-        markers: {
-            size: {$marker_size},
-            hover: {
-                size: 7
-            }
-        },
-        xaxis: {
-            categories: {$categorias_json},
-            labels: {
-                style: {
-                    colors: '#64748b'
-                }
-            }
-        },
-        yaxis: {
-            title: {
-                text: '{$metrica['unidad']}'
-            },
-            labels: {
-                style: {
-                    colors: '#64748b'
-                }
-            }
-        },
-        grid: {
-            borderColor: '#e2e8f0',
-            strokeDashArray: 4
-        },
-        tooltip: {
-            y: {
-                formatter: function(val) {
-                    return val + ' {$metrica['unidad']}';
-                }
-            }
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: [{
+                name: '{$metrica['nombre']}',
+                data: {$valores_json}
+            }],
+            chart: {
+                type: 'area',
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: false },
+                zoom: { enabled: false }
+            },
+            colors: ['{$color}'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: '{$curve}',
+                width: 2
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.45,
+                    opacityTo: 0.05,
+                    stops: [0, 90, 100]
+                }
+            },
+            markers: {
+                size: {$marker_size},
+                hover: {
+                    size: 7
+                }
+            },
+            xaxis: {
+                categories: {$categorias_json},
+                labels: {
+                    style: {
+                        colors: '#64748b'
+                    }
+                }
+            },
+            yaxis: {
+                title: {
+                    text: '{$metrica['unidad']}'
+                },
+                labels: {
+                    style: {
+                        colors: '#64748b'
+                    }
+                }
+            },
+            grid: {
+                borderColor: '#e2e8f0',
+                strokeDashArray: 4
+            },
+            tooltip: {
+                y: {
+                    formatter: function(val) {
+                        return val + ' {$metrica['unidad']}';
+                    }
+                }
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

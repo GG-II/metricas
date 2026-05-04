@@ -206,6 +206,23 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     <div class="text-muted small mb-2">
                                         <i class="ti ti-building me-1"></i>
                                         <?php echo e($area['departamento_nombre']); ?>
+                                        <?php
+                                        // Mostrar badge de tipo de departamento
+                                        $tipo = $area['departamento_tipo'] ?? 'corporativo';
+                                        if ($tipo === 'agencia'):
+                                        ?>
+                                            <span class="badge bg-success-lt ms-1" title="Agencia">
+                                                <i class="ti ti-building-bank"></i>
+                                            </span>
+                                        <?php elseif ($tipo === 'global'): ?>
+                                            <span class="badge bg-purple-lt ms-1" title="Global">
+                                                <i class="ti ti-world"></i>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-blue-lt ms-1" title="Corporativo">
+                                                <i class="ti ti-building"></i>
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="text-muted small">
                                         <?php echo e($area['descripcion'] ?: 'Sin descripción'); ?>
@@ -296,8 +313,15 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 <option value="">Seleccionar departamento...</option>
                                 <?php foreach ($departamentos as $dept): ?>
                                 <option value="<?php echo $dept['id']; ?>"
-                                        <?php echo ($editando && $editando['departamento_id'] == $dept['id']) || ($departamento_filtro == $dept['id']) ? 'selected' : ''; ?>>
-                                    <?php echo e($dept['nombre']); ?>
+                                        <?php echo ($editando && $editando['departamento_id'] == $dept['id']) || ($departamento_filtro == $dept['id']) ? 'selected' : ''; ?>
+                                        data-tipo="<?php echo e($dept['tipo'] ?? 'corporativo'); ?>">
+                                    <?php
+                                    echo e($dept['nombre']);
+                                    // Mostrar tipo entre paréntesis
+                                    $tipo = $dept['tipo'] ?? 'corporativo';
+                                    $tipo_label = $tipo === 'agencia' ? 'Agencia' : ($tipo === 'global' ? 'Global' : 'Corporativo');
+                                    echo ' (' . $tipo_label . ')';
+                                    ?>
                                 </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>

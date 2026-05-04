@@ -160,38 +160,44 @@ JS,
     <div id="{$chart_id}" style="height: {$altura}px;"></div>
 </div>
 <script>
-(function() {
-    const options = {
-        series: [{
-            data: {$valores_json}
-        }],
-        chart: {
-            type: 'line',
-            height: {$altura},
-            sparkline: {
-                enabled: true
-            }
-        },
-        stroke: {
-            curve: 'smooth',
-            width: 2
-        },
-        colors: ['{$color}'],
-        tooltip: {
-            fixed: {
-                enabled: false
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
+
+        const options = {
+            series: [{
+                data: {$valores_json}
+            }],
+            chart: {
+                type: 'line',
+                height: {$altura},
+                sparkline: {
+                    enabled: true
+                }
             },
-            y: {
-                formatter: function(val) {
-                    return val + ' {$metrica['unidad']}';
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            colors: ['{$color}'],
+            tooltip: {
+                fixed: {
+                    enabled: false
+                },
+                y: {
+                    formatter: function(val) {
+                        return val + ' {$metrica['unidad']}';
+                    }
                 }
             }
-        }
-    };
+        };
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

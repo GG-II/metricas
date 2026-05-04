@@ -184,53 +184,59 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: {$series_json},
-        chart: {
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: true }
-        },
-        colors: ['#3b82f6', '#60a5fa', '#10b981', '#34d399'],
-        stroke: {
-            width: [0, 0, 3, 3],
-            curve: 'smooth'
-        },
-        plotOptions: {
-            bar: {
-                columnWidth: '50%'
-            }
-        },
-        markers: {
-            size: [0, 0, 4, 4]
-        },
-        xaxis: {
-            categories: {$categorias_json}
-        },
-        yaxis: {
-            labels: {
-                formatter: function(val) {
-                    return Math.round(val);
-                }
-            }
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left'
-        },
-        grid: {
-            borderColor: '#e2e8f0'
-        },
-        tooltip: {
-            shared: true,
-            intersect: false
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: {$series_json},
+            chart: {
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: true }
+            },
+            colors: ['#3b82f6', '#60a5fa', '#10b981', '#34d399'],
+            stroke: {
+                width: [0, 0, 3, 3],
+                curve: 'smooth'
+            },
+            plotOptions: {
+                bar: {
+                    columnWidth: '50%'
+                }
+            },
+            markers: {
+                size: [0, 0, 4, 4]
+            },
+            xaxis: {
+                categories: {$categorias_json}
+            },
+            yaxis: {
+                labels: {
+                    formatter: function(val) {
+                        return Math.round(val);
+                    }
+                }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left'
+            },
+            grid: {
+                borderColor: '#e2e8f0'
+            },
+            tooltip: {
+                shared: true,
+                intersect: false
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

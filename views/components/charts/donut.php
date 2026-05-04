@@ -127,65 +127,106 @@ function(form, config) {
 }
 JS,
     
-    'render' => function($config, $metrica_data, $area_color) {
-        if (!isset($config['metricas']) || count($config['metricas']) < 2) {
-            return '<div class="alert alert-warning m-3">Configura al menos 2 métricas</div>';
+    'render' => function($config, $metrica_data, $area_color, $periodo = null) {
+        // Debug: verificar configuración
+        if (!isset($config['metricas'])) {
+            return '<div class="alert alert-danger m-3">Error: No se encontró configuración de métricas</div>';
         }
 
-        global $periodo;
+        if (!is_array($config['metricas']) || count($config['metricas']) < 2) {
+            return '<div class="alert alert-warning m-3">Configura al menos 2 métricas. Actualmente hay ' . (is_array($config['metricas']) ? count($config['metricas']) : '0') . ' métrica(s).</div>';
+        }
+
+        if (!$periodo) {
+            return '<div class="alert alert-warning m-3">Selecciona un período en el dashboard</div>';
+        }
 
         // Instanciar modelos con namespace correcto
         $valorMetricaModel = new \App\Models\ValorMetrica();
         $metricaModel = new \App\Models\Metrica();
-        
+
         $altura = (int)($config['altura'] ?? 350);
         $mostrar_porcentaje = $config['mostrar_porcentaje'] ?? true;
-        
+
         $labels = [];
         $values = [];
         $colors = [];
-        
-        foreach ($config['metricas'] as $metrica_config) {
+        $errores = [];
+
+        foreach ($config['metricas'] as $idx => $metrica_config) {
+            if (!isset($metrica_config['id'])) {
+                $errores[] = "Métrica #" . ($idx + 1) . ": sin ID";
+                continue;
+            }
+
             $metrica_id = $metrica_config['id'];
-            $color = $metrica_config['color'];
-            
+            $color = $metrica_config['color'] ?? '#3b82f6';
+
             $metrica_info = $metricaModel->find($metrica_id);
-            $datos = $valorMetricaModel->getByMetricaYPeriodo($metrica_id, $periodo['id']);
-            
-            if (!$datos) continue;
-            
+            if (!$metrica_info) {
+                $errores[] = "Métrica ID {$metrica_id}: no encontrada";
+                continue;
+            }
+
+            $datos = $valorMetricaModel->getValor($metrica_id, $periodo['id']);
+
+            if (!$datos) {
+                $errores[] = "{$metrica_info['nombre']}: sin datos para este período";
+                continue;
+            }
+
+            $valor = $metrica_info['tipo_valor'] === 'decimal'
+                ? (float)$datos['valor_decimal']
+                : (float)$datos['valor_numero'];
+
             $labels[] = $metrica_info['nombre'];
-            $values[] = (float)$datos['valor'];
+            $values[] = $valor;
             $colors[] = $color;
         }
-        
+
         if (empty($values)) {
-            return '<div class="alert alert-info m-3">No hay datos para el período actual</div>';
+            $msg = 'No hay datos para mostrar.';
+            if (!empty($errores)) {
+                $msg .= '<br><small>' . implode('<br>', $errores) . '</small>';
+            }
+            return '<div class="alert alert-info m-3">' . $msg . '</div>';
         }
         
         $chart_id = 'donut-' . uniqid();
         
+        $chart_id = 'donut-' . uniqid();
+        $valores_json = json_encode($values);
+        $labels_json = json_encode($labels);
+        $colors_json = json_encode($colors);
+        $total = array_sum($values);
+
         ob_start();
         ?>
-        <div class="donut-chart p-3">
+        <div class="donut-chart-widget p-3">
             <div id="<?php echo $chart_id; ?>" style="height: <?php echo $altura; ?>px;"></div>
         </div>
-        
+
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             const options = {
-                series: <?php echo json_encode($values); ?>,
+                series: <?php echo $valores_json; ?>,
                 chart: {
                     type: 'donut',
                     height: <?php echo $altura; ?>,
+                    toolbar: { show: false },
                     background: 'transparent'
                 },
-                labels: <?php echo json_encode($labels); ?>,
-                colors: <?php echo json_encode($colors); ?>,
+                labels: <?php echo $labels_json; ?>,
+                colors: <?php echo $colors_json; ?>,
                 dataLabels: {
                     enabled: <?php echo $mostrar_porcentaje ? 'true' : 'false'; ?>,
-                    formatter: function(val) { return val.toFixed(1) + '%'; },
-                    style: { fontSize: '14px', colors: ['#fff'] }
+                    formatter: function(val) {
+                        return val.toFixed(1) + '%';
+                    },
+                    style: {
+                        fontSize: '14px',
+                        colors: ['#fff']
+                    }
                 },
                 plotOptions: {
                     pie: {
@@ -198,7 +239,9 @@ JS,
                                     label: 'Total',
                                     fontSize: '16px',
                                     color: '#94a3b8',
-                                    formatter: () => <?php echo array_sum($values); ?>.toFixed(0)
+                                    formatter: function() {
+                                        return <?php echo $total; ?>;
+                                    }
                                 }
                             }
                         }
@@ -206,20 +249,23 @@ JS,
                 },
                 legend: {
                     position: 'bottom',
-                    labels: { colors: '#94a3b8' }
+                    labels: {
+                        colors: '#94a3b8'
+                    }
                 },
                 tooltip: {
                     theme: 'dark',
-                    y: { formatter: val => val.toFixed(0) }
+                    y: {
+                        formatter: function(val) {
+                            return val.toFixed(0);
+                        }
+                    }
                 }
             };
-            
-            const chartEl = document.querySelector("#<?php echo $chart_id; ?>");
+
+            const chartEl = document.querySelector('#<?php echo $chart_id; ?>');
             const chart = new ApexCharts(chartEl, options);
             chart.render();
-            
-            const resizeObserver = new ResizeObserver(() => chart.updateOptions({}, true, true));
-            resizeObserver.observe(chartEl.closest('.grid-stack-item'));
         });
         </script>
         <?php

@@ -43,11 +43,16 @@ echo "</div>";
 echo "<div class='section'>";
 echo "<h2>3. Base de Datos</h2>";
 try {
-    $config = require __DIR__ . '/../config/database.php';
-    $dsn = "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}";
-    $db = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+    require_once __DIR__ . '/../config.php';
+    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false
+    ];
+    $db = new PDO($dsn, DB_USER, DB_PASS, $options);
     echo "<span class='success'>✓ Conexión exitosa a MySQL</span><br>";
-    echo "Base de datos: <strong>{$config['database']}</strong><br>";
+    echo "Base de datos: <strong>" . DB_NAME . "</strong><br>";
 
     // Verificar tablas
     $tables = ['departamentos', 'areas', 'usuarios', 'periodos'];

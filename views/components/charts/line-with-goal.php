@@ -108,7 +108,7 @@ JS,
 
         $metrica_id = $config['metrica_id'];
         $periodos = (int)($config['periodos'] ?? 12);
-        $color = $config['color'] ?? '#3b82f6';
+        $color = $config['color'] ?? $area_color ?? '#3b82f6';
         $altura = (int)($config['altura'] ?? 350);
         $mostrar_area = $config['mostrar_area'] ?? true;
 
@@ -152,58 +152,98 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: [
-            {
-                name: 'Valor Real',
-                data: {$valores_json}
-            },
-            {
-                name: 'Meta',
-                data: {$metas_json}
-            }
-        ],
-        chart: {
-            type: 'line',
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: false }
-        },
-        colors: ['{$color}', '#94a3b8'],
-        stroke: {
-            width: [3, 2],
-            curve: 'smooth',
-            dashArray: [0, 5]
-        },
-        markers: {
-            size: [5, 0]
-        },
-        xaxis: {
-            categories: {$categorias_json}
-        },
-        yaxis: {
-            title: { text: '{$metrica['unidad']}' }
-        },
-        legend: {
-            position: 'top'
-        },
-        tooltip: {
-            shared: true,
-            intersect: false
-        },
-        fill: {
-            type: '{$mostrar_area}' === '1' ? 'gradient' : 'solid',
-            gradient: {
-                opacityFrom: 0.3,
-                opacityTo: 0.1
-            }
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: [
+                {
+                    name: 'Valor Real',
+                    data: {$valores_json}
+                },
+                {
+                    name: 'Meta',
+                    data: {$metas_json}
+                }
+            ],
+            chart: {
+                type: 'line',
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: false }
+            },
+            colors: ['{$color}', '#f59e0b'],
+            stroke: {
+                width: [3, 3],
+                curve: 'smooth',
+                dashArray: [0, 5]
+            },
+            markers: {
+                size: [6, 4],
+                strokeWidth: [2, 2],
+                strokeColors: ['#fff', '#fff'],
+                hover: {
+                    size: 8
+                }
+            },
+            xaxis: {
+                categories: {$categorias_json},
+                labels: {
+                    style: {
+                        colors: '#64748b',
+                        fontSize: '12px'
+                    }
+                }
+            },
+            yaxis: {
+                title: {
+                    text: '{$metrica['unidad']}',
+                    style: {
+                        color: '#64748b'
+                    }
+                },
+                labels: {
+                    style: {
+                        colors: '#64748b',
+                        fontSize: '12px'
+                    }
+                }
+            },
+            grid: {
+                borderColor: '#e2e8f0',
+                strokeDashArray: 4,
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                }
+            },
+            legend: {
+                position: 'top',
+                labels: {
+                    colors: '#64748b'
+                }
+            },
+            tooltip: {
+                shared: true,
+                intersect: false
+            },
+            fill: {
+                type: '{$mostrar_area}' === '1' ? 'gradient' : 'solid',
+                gradient: {
+                    opacityFrom: 0.3,
+                    opacityTo: 0.1
+                }
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

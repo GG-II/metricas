@@ -3,10 +3,12 @@
  * Documentación de API REST
  */
 
+require_once __DIR__ . '/../config.php';
+
 $docs = [
     'name' => 'Sistema de Métricas API',
     'version' => '1.0',
-    'base_url' => '/metricas/api',
+    'base_url' => BASE_URL . '/api',
     'authentication' => [
         'type' => 'Bearer Token',
         'header' => 'Authorization: Bearer {your-token}',

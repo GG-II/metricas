@@ -53,7 +53,7 @@ require_once '../../views/layouts/header.php';
                 <div class="text-muted mt-1">Gestiona tus tokens de acceso para la API REST</div>
             </div>
             <div class="col-auto">
-                <a href="/metricas/api" target="_blank" class="btn btn-outline-primary">
+                <a href="<?php echo baseUrl('/api'); ?>" target="_blank" class="btn btn-outline-primary">
                     <i class="ti ti-book me-1"></i>
                     Documentación
                 </a>

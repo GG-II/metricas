@@ -6,6 +6,7 @@
 use App\Models\ValorMetrica;
 use App\Models\Metrica;
 use App\Services\PermissionService;
+use App\Services\MetricaCalculadaService;
 
 $valorModel = new ValorMetrica();
 $metricaModel = new Metrica();
@@ -114,12 +115,32 @@ if ($method === 'POST') {
         $data
     );
 
-    http_response_code(201);
-    echo json_encode([
-        'success' => true,
-        'data' => ['id' => $id],
-        'message' => 'Valor guardado correctamente'
-    ]);
+    // Recalcular métricas calculadas que dependen de esta métrica
+    try {
+        $calculadaService = new MetricaCalculadaService();
+        $recalculadas = $calculadaService->recalcularDependientes(
+            $input['metrica_id'],
+            $input['periodo_id'],
+            $user['id']
+        );
+
+        http_response_code(201);
+        echo json_encode([
+            'success' => true,
+            'data' => ['id' => $id],
+            'message' => 'Valor guardado correctamente',
+            'metricas_recalculadas' => $recalculadas
+        ]);
+    } catch (\Exception $e) {
+        // Si falla el recálculo, igual devolvemos éxito pero sin recalcular
+        http_response_code(201);
+        echo json_encode([
+            'success' => true,
+            'data' => ['id' => $id],
+            'message' => 'Valor guardado correctamente',
+            'warning' => 'No se pudieron recalcular métricas dependientes'
+        ]);
+    }
     exit;
 }
 

@@ -69,4 +69,29 @@ class Periodo extends Model {
         ");
         return $stmt->fetchAll();
     }
+
+    /**
+     * Obtener el período anterior a uno dado
+     */
+    public function getPeriodoAnterior($ejercicio, $periodo) {
+        // Si es enero (periodo 1), buscar diciembre del año anterior
+        if ($periodo == 1) {
+            $stmt = $this->db->prepare("
+                SELECT * FROM {$this->table}
+                WHERE ejercicio = ? AND periodo = 12 AND activo = 1
+                LIMIT 1
+            ");
+            $stmt->execute([$ejercicio - 1]);
+        } else {
+            // Buscar el mes anterior en el mismo año
+            $stmt = $this->db->prepare("
+                SELECT * FROM {$this->table}
+                WHERE ejercicio = ? AND periodo = ? AND activo = 1
+                LIMIT 1
+            ");
+            $stmt->execute([$ejercicio, $periodo - 1]);
+        }
+
+        return $stmt->fetch();
+    }
 }

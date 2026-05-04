@@ -22,6 +22,40 @@ class MetricaCalculadaService
     }
 
     /**
+     * Verificar si un área pertenece al departamento Global
+     *
+     * Detecta si un área es global verificando el tipo de su departamento padre.
+     * CUALQUIER área dentro de un departamento tipo='global' es considerada área global.
+     *
+     * @param int $area_id ID del área a verificar
+     * @return bool True si el área pertenece a un departamento global
+     */
+    private function esAreaGlobal($area_id)
+    {
+        $stmt = $this->db->prepare("
+            SELECT d.tipo
+            FROM areas a
+            JOIN departamentos d ON a.departamento_id = d.id
+            WHERE a.id = ?
+        ");
+        $stmt->execute([$area_id]);
+        $result = $stmt->fetch();
+
+        return $result && $result['tipo'] === 'global';
+    }
+
+    /**
+     * Método público para verificar si un área es global
+     *
+     * @param int $area_id ID del área a verificar
+     * @return bool True si el área es global
+     */
+    public function isAreaGlobal($area_id)
+    {
+        return $this->esAreaGlobal($area_id);
+    }
+
+    /**
      * Obtener componentes de una métrica calculada
      */
     public function getComponentes($metrica_calculada_id)
@@ -168,27 +202,36 @@ class MetricaCalculadaService
 
     /**
      * Obtener métricas disponibles como componentes para un área
+     *
+     * - Áreas NORMALES: retorna solo métricas de esa área
+     * - Áreas GLOBALES: retorna métricas de TODAS las áreas (excepto otras áreas globales)
+     *   Esto permite crear métricas calculadas globales que sumen de cualquier departamento/área
+     *
+     * @param int $area_id ID del área
+     * @param int|null $excluir_metrica_id ID de métrica a excluir (para evitar recursión)
+     * @return array Lista de métricas disponibles
      */
     public function getMetricasDisponibles($area_id, $excluir_metrica_id = null)
     {
-        // Verificar si es el área global (slug = 'metricas-consolidadas')
-        $stmt = $this->db->prepare("SELECT slug FROM areas WHERE id = ?");
-        $stmt->execute([$area_id]);
-        $area = $stmt->fetch();
-
-        $es_area_global = ($area && $area['slug'] === 'metricas-consolidadas');
+        // Verificar si es área global usando el nuevo método basado en tipo de departamento
+        $es_area_global = $this->esAreaGlobal($area_id);
 
         if ($es_area_global) {
             // Área GLOBAL: mostrar métricas de TODAS las áreas
+            // EXCEPTO métricas de otras áreas globales (evitar recursión)
             $sql = "
                 SELECT m.id, m.nombre, m.unidad, m.tipo_valor, m.es_calculada,
                        a.nombre as area_nombre, a.color as area_color,
-                       d.nombre as departamento_nombre
+                       d.nombre as departamento_nombre,
+                       d.tipo as departamento_tipo,
+                       d.color as departamento_color
                 FROM metricas m
                 JOIN areas a ON m.area_id = a.id
                 JOIN departamentos d ON a.departamento_id = d.id
-                WHERE m.activo = 1 AND a.slug != 'metricas-consolidadas'
+                WHERE m.activo = 1
+                  AND d.tipo != 'global'
             ";
+            $params = [];
         } else {
             // Área NORMAL: solo métricas de esta área
             $sql = "
@@ -198,9 +241,8 @@ class MetricaCalculadaService
                 JOIN areas a ON m.area_id = a.id
                 WHERE m.area_id = ? AND m.activo = 1
             ";
+            $params = [$area_id];
         }
-
-        $params = $es_area_global ? [] : [$area_id];
 
         if ($excluir_metrica_id) {
             $sql .= " AND m.id != ?";
@@ -208,9 +250,12 @@ class MetricaCalculadaService
         }
 
         if ($es_area_global) {
-            $sql .= " ORDER BY d.orden, a.orden, m.orden ASC, m.nombre ASC";
+            // Ordenar: primero agencias, luego corporativos, por orden y nombre
+            $sql .= " ORDER BY
+                        FIELD(d.tipo, 'agencia', 'corporativo'),
+                        d.orden, a.orden, m.orden, m.nombre";
         } else {
-            $sql .= " ORDER BY m.orden ASC, m.nombre ASC";
+            $sql .= " ORDER BY m.orden, m.nombre";
         }
 
         $stmt = $this->db->prepare($sql);

@@ -39,7 +39,7 @@ class Area extends Model {
             SELECT a.*, d.nombre as departamento_nombre, d.color as departamento_color
             FROM {$this->table} a
             JOIN departamentos d ON a.departamento_id = d.id
-            WHERE a.id = ?
+            WHERE a.id = ? AND a.activo = 1 AND d.activo = 1
         ");
         $stmt->execute([$id]);
         return $stmt->fetch();
@@ -60,6 +60,7 @@ class Area extends Model {
             SELECT a.*,
                    d.nombre as departamento_nombre,
                    d.color as departamento_color,
+                   d.tipo as departamento_tipo,
                    COUNT(DISTINCT m.id) as total_metricas,
                    COUNT(DISTINCT g.id) as total_graficos
             FROM {$this->table} a

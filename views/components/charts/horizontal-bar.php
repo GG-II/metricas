@@ -20,19 +20,11 @@ return [
     <div class="col-12">
         <div class="card-hint" style="padding: 0.5rem; background-color: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; border-radius: 4px; color: #3b82f6;">
             <i class="ti ti-bulb me-1"></i>
-            Ideal para comparar múltiples métricas del mismo período o rankings
+            Ideal para comparar múltiples métricas del mismo período o rankings. El período se toma del dashboard.
         </div>
     </div>
 
-    <div class="col-md-6">
-        <label class="form-label">Período a comparar</label>
-        <select name="periodo_id" class="form-select" required>
-            <option value="">Seleccionar período...</option>
-        </select>
-        <div class="form-hint">Se compararán todas las métricas en este período</div>
-    </div>
-
-    <div class="col-md-6">
+    <div class="col-md-12">
         <label class="form-label">Altura (px)</label>
         <input type="number" name="altura" class="form-control" value="400" min="250" max="800">
     </div>
@@ -92,14 +84,12 @@ HTML;
 
         return [
             'metricas' => $metricas,
-            'periodo_id' => (int)$post['periodo_id'],
             'altura' => (int)($post['altura'] ?? 400)
         ];
     },
 
     'load_config_js' => <<<'JS'
 function(form, config) {
-    form.querySelector('[name="periodo_id"]').value = config.periodo_id;
     form.querySelector('[name="altura"]').value = config.altura;
     for (let i = 0; i < config.metricas.length; i++) {
         const select = form.querySelector(`[name="metrica_${i+1}"]`);
@@ -108,26 +98,20 @@ function(form, config) {
 }
 JS,
 
-    'render' => function($config, $metrica_data, $area_color) {
+    'render' => function($config, $metrica_data, $area_color, $periodo = null) {
         if (empty($config['metricas']) || count($config['metricas']) < 2) {
             return '<div class="alert alert-warning m-3">Selecciona al menos 2 métricas</div>';
         }
 
-        if (!isset($config['periodo_id'])) {
-            return '<div class="alert alert-warning m-3">Selecciona un período</div>';
+        if (!$periodo) {
+            return '<div class="alert alert-warning m-3">Selecciona un período en el dashboard</div>';
         }
 
         $valorMetricaModel = new \App\Models\ValorMetrica();
         $metricaModel = new \App\Models\Metrica();
-        $periodoModel = new \App\Models\Periodo();
 
-        $periodo_id = $config['periodo_id'];
+        $periodo_id = $periodo['id'];
         $altura = (int)($config['altura'] ?? 400);
-
-        $periodo = $periodoModel->find($periodo_id);
-        if (!$periodo) {
-            return '<div class="alert alert-danger m-3">Período no encontrado</div>';
-        }
 
         $categorias = [];
         $valores = [];
@@ -155,65 +139,71 @@ JS,
 <div class="mb-2 text-muted small text-center">Período: {$periodo['nombre']}</div>
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: [{
-            name: 'Valor',
-            data: {$valores_json}
-        }],
-        chart: {
-            type: 'bar',
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: false }
-        },
-        plotOptions: {
-            bar: {
-                horizontal: true,
-                barHeight: '70%',
-                distributed: true
-            }
-        },
-        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
-        dataLabels: {
-            enabled: true,
-            formatter: function(val) {
-                return Math.round(val);
-            }
-        },
-        xaxis: {
-            categories: {$categorias_json}
-        },
-        yaxis: {
-            labels: {
-                style: {
-                    fontSize: '12px'
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
+
+        const options = {
+            series: [{
+                name: 'Valor',
+                data: {$valores_json}
+            }],
+            chart: {
+                type: 'bar',
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: false }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    barHeight: '70%',
+                    distributed: true
                 }
-            }
-        },
-        legend: {
-            show: false
-        },
-        grid: {
-            borderColor: '#e2e8f0',
-            xaxis: {
-                lines: {
-                    show: true
-                }
-            }
-        },
-        tooltip: {
-            y: {
+            },
+            colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+            dataLabels: {
+                enabled: true,
                 formatter: function(val) {
                     return Math.round(val);
                 }
+            },
+            xaxis: {
+                categories: {$categorias_json}
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        fontSize: '12px'
+                    }
+                }
+            },
+            legend: {
+                show: false
+            },
+            grid: {
+                borderColor: '#e2e8f0',
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: function(val) {
+                        return Math.round(val);
+                    }
+                }
             }
-        }
-    };
+        };
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

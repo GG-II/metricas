@@ -87,16 +87,21 @@
 
 ---
 
-## Instalación
+## 🚀 Instalación Rápida
 
-### **1. Clonar el Repositorio**
+**Para instrucciones completas de despliegue, ver [DEPLOYMENT.md](DEPLOYMENT.md)**
 
-```bash
-git clone <repository-url> metricas
-cd metricas
-```
+### Resumen:
 
-### **2. Instalar Dependencias**
+1. **Clonar proyecto**
+2. **Crear archivo `.env`** desde `.env.example`
+3. **Configurar base de datos** en `.env`
+4. **Instalar dependencias**: `composer install`
+5. **Importar BD**: `database/metricas_sistema.sql`
+
+**Única configuración necesaria:** Editar `.env` con tus credenciales y ruta base.
+
+### **2. Instalar Dependencias (obsoleto - ver DEPLOYMENT.md)**
 
 ```bash
 composer install

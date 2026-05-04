@@ -97,7 +97,7 @@ class ChartRegistry {
     /**
      * Renderizar widget
      */
-    public static function render($id, $config, $metrica_data, $area_color) {
+    public static function render($id, $config, $metrica_data, $area_color, $periodo = null) {
         $chart = self::get($id);
 
         if (!$chart || !isset($chart['render'])) {
@@ -105,7 +105,7 @@ class ChartRegistry {
         }
 
         return is_callable($chart['render'])
-            ? $chart['render']($config, $metrica_data, $area_color)
+            ? $chart['render']($config, $metrica_data, $area_color, $periodo)
             : '';
     }
 

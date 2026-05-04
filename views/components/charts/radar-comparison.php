@@ -172,40 +172,46 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: {$series_json},
-        chart: {
-            type: 'radar',
-            height: {$altura},
-            fontFamily: 'inherit',
-            toolbar: { show: false }
-        },
-        colors: ['#3b82f6', '#10b981'],
-        stroke: {
-            width: 2
-        },
-        fill: {
-            opacity: 0.2
-        },
-        markers: {
-            size: 4
-        },
-        xaxis: {
-            categories: {$categorias_json}
-        },
-        yaxis: {
-            show: false
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left'
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: {$series_json},
+            chart: {
+                type: 'radar',
+                height: {$altura},
+                fontFamily: 'inherit',
+                toolbar: { show: false }
+            },
+            colors: ['#3b82f6', '#10b981'],
+            stroke: {
+                width: 2
+            },
+            fill: {
+                opacity: 0.2
+            },
+            markers: {
+                size: 4
+            },
+            xaxis: {
+                categories: {$categorias_json}
+            },
+            yaxis: {
+                show: false
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left'
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

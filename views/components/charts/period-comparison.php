@@ -120,7 +120,7 @@ JS,
         // Calcular diferencia y porcentaje
         $diferencia = $val_2 - $val_1;
         $porcentaje = $val_1 != 0 ? (($diferencia / $val_1) * 100) : 0;
-        $porcentaje_abs = abs($porcentaje);
+        $porcentaje_abs = number_format(abs($porcentaje), 2);
 
         // Determinar dirección y color
         if ($diferencia > 0) {
@@ -264,42 +264,48 @@ HTML;
     </div>
 </div>
 <script>
-(function() {
-    const options = {
-        series: [{$cambio_normalizado}],
-        chart: {
-            type: 'radialBar',
-            height: 200
-        },
-        plotOptions: {
-            radialBar: {
-                hollow: {
-                    size: '60%'
-                },
-                dataLabels: {
-                    name: {
-                        fontSize: '14px',
-                        color: '#64748b',
-                        offsetY: -10
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
+
+        const options = {
+            series: [{$cambio_normalizado}],
+            chart: {
+                type: 'radialBar',
+                height: 200
+            },
+            plotOptions: {
+                radialBar: {
+                    hollow: {
+                        size: '60%'
                     },
-                    value: {
-                        fontSize: '24px',
-                        fontWeight: 600,
-                        color: '{$color}',
-                        formatter: function(val) {
-                            return '{$signo}' + val.toFixed(1) + '%';
+                    dataLabels: {
+                        name: {
+                            fontSize: '14px',
+                            color: '#64748b',
+                            offsetY: -10
+                        },
+                        value: {
+                            fontSize: '24px',
+                            fontWeight: 600,
+                            color: '{$color}',
+                            formatter: function(val) {
+                                return '{$signo}' + val.toFixed(1) + '%';
+                            }
                         }
                     }
                 }
-            }
-        },
-        colors: ['{$color}'],
-        labels: ['Cambio']
-    };
+            },
+            colors: ['{$color}'],
+            labels: ['Cambio']
+        };
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
         }

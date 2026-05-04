@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Middleware\AuthMiddleware;
+use App\Middleware\PermissionMiddleware;
 use App\Services\PermissionService;
 use App\Services\MetricaCalculadaService;
 use App\Models\Metrica;
@@ -13,6 +14,7 @@ use App\Models\Area;
 use App\Models\Departamento;
 
 AuthMiddleware::handle();
+PermissionMiddleware::requireAdmin();
 
 $user = getCurrentUser();
 $metricaModel = new Metrica();
@@ -142,7 +144,13 @@ if ($periodo_param) {
 }
 
 // Área seleccionada
-$area_id = $_GET['area'] ?? null;
+// Para area_admin, forzar su área asignada
+if ($user['rol'] === 'area_admin') {
+    $area_id = $user['area_id'];
+} else {
+    $area_id = $_GET['area'] ?? null;
+}
+
 $area = null;
 $metricas = [];
 $valores_existentes = [];
@@ -206,6 +214,12 @@ require_once __DIR__ . '/../views/layouts/header.php';
             <div class="page-header mb-4">
                 <div class="row align-items-center">
                     <div class="col">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item active">Captura de Valores</li>
+                            </ol>
+                        </nav>
                         <h2 class="page-title">
                             <i class="ti ti-edit me-2"></i>
                             Captura de Valores
@@ -241,6 +255,13 @@ require_once __DIR__ . '/../views/layouts/header.php';
                             </select>
                         </div>
 
+                        <?php if ($user['rol'] === 'area_admin'): ?>
+                        <div class="col-md-8">
+                            <label class="form-label">Área Asignada</label>
+                            <input type="text" class="form-control" value="<?php echo e($area['departamento_nombre'] ?? ''); ?> › <?php echo e($area['nombre'] ?? ''); ?>" readonly>
+                            <input type="hidden" name="area" value="<?php echo $user['area_id']; ?>">
+                        </div>
+                        <?php else: ?>
                         <div class="col-md-4">
                             <label class="form-label">Departamento</label>
                             <select id="dept-select" class="form-select">
@@ -265,6 +286,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                                 <?php endif; ?>
                             </select>
                         </div>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>
@@ -474,6 +496,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- Bootstrap 5 JS (incluye Dropdown) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Tabler JS -->
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>

@@ -51,6 +51,7 @@
                                     $roles = [
                                         'super_admin' => 'Super Admin',
                                         'dept_admin' => 'Admin Departamento',
+                                        'area_admin' => 'Admin de Área',
                                         'dept_viewer' => 'Visualizador'
                                     ];
                                     echo $roles[$user['rol']] ?? $user['rol'];
@@ -62,7 +63,7 @@
                             <a href="<?php echo baseUrl('/public/perfil.php'); ?>" class="dropdown-item">
                                 <i class="ti ti-user me-2"></i> Mi Perfil
                             </a>
-                            <?php if (isDeptAdmin()): ?>
+                            <?php if (in_array($user['rol'], ['super_admin', 'dept_admin', 'area_admin'])): ?>
                             <a href="<?php echo baseUrl('/public/admin/index.php'); ?>" class="dropdown-item">
                                 <i class="ti ti-settings me-2"></i> Administración
                             </a>

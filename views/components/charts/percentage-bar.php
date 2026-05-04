@@ -116,7 +116,8 @@ JS,
             9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dic'
         ];
 
-        foreach ($config['metricas'] as $metrica_id) {
+        foreach ($config['metricas'] as $metrica_config) {
+            $metrica_id = is_array($metrica_config) ? $metrica_config['id'] : $metrica_config;
             $metrica = $metricaModel->find($metrica_id);
             if (!$metrica) continue;
 
@@ -151,73 +152,79 @@ JS,
         return <<<HTML
 <div id="{$chart_id}" style="height: {$altura}px;"></div>
 <script>
-(function() {
-    const options = {
-        series: {$series_json},
-        chart: {
-            type: 'bar',
-            height: {$altura},
-            fontFamily: 'inherit',
-            stacked: true,
-            stackType: '100%',
-            toolbar: { show: true }
-        },
-        colors: {$colores_json},
-        plotOptions: {
-            bar: {
-                horizontal: false,
-                columnWidth: '70%'
-            }
-        },
-        xaxis: {
-            categories: {$categorias_json}
-        },
-        yaxis: {
-            labels: {
-                formatter: function(val) {
-                    return val.toFixed(0) + '%';
-                }
-            }
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'left'
-        },
-        grid: {
-            borderColor: '#e2e8f0'
-        },
-        tooltip: {
-            shared: true,
-            intersect: false,
-            y: {
-                formatter: function(val, { seriesIndex, dataPointIndex, w }) {
-                    const series = w.globals.initialSeries;
-                    let total = 0;
-                    series.forEach(s => {
-                        total += s.data[dataPointIndex];
-                    });
-                    const percentage = ((val / total) * 100).toFixed(1);
-                    return val + ' (' + percentage + '%)';
-                }
-            }
-        },
-        fill: {
-            opacity: 1
-        },
-        dataLabels: {
-            enabled: true,
-            formatter: function(val) {
-                return val > 5 ? val.toFixed(0) + '%' : '';
-            },
-            style: {
-                colors: ['#fff']
-            }
-        }
-    };
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const container = document.getElementById('{$chart_id}');
+        if (!container || container.hasAttribute('data-chart-rendered')) return;
 
-    const chart = new ApexCharts(document.querySelector('#{$chart_id}'), options);
-    chart.render();
-})();
+        const options = {
+            series: {$series_json},
+            chart: {
+                type: 'bar',
+                height: {$altura},
+                fontFamily: 'inherit',
+                stacked: true,
+                stackType: '100%',
+                toolbar: { show: true }
+            },
+            colors: {$colores_json},
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '70%'
+                }
+            },
+            xaxis: {
+                categories: {$categorias_json}
+            },
+            yaxis: {
+                labels: {
+                    formatter: function(val) {
+                        return val.toFixed(0) + '%';
+                    }
+                }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left'
+            },
+            grid: {
+                borderColor: '#e2e8f0'
+            },
+            tooltip: {
+                shared: true,
+                intersect: false,
+                y: {
+                    formatter: function(val, { seriesIndex, dataPointIndex, w }) {
+                        const series = w.globals.initialSeries;
+                        let total = 0;
+                        series.forEach(s => {
+                            total += s.data[dataPointIndex];
+                        });
+                        const percentage = ((val / total) * 100).toFixed(1);
+                        return val + ' (' + percentage + '%)';
+                    }
+                }
+            },
+            fill: {
+                opacity: 1
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val) {
+                    return val > 5 ? val.toFixed(0) + '%' : '';
+                },
+                style: {
+                    colors: ['#fff']
+                }
+            }
+        };
+
+        const chart = new ApexCharts(container, options);
+        chart.render();
+        container.setAttribute('data-chart-rendered', 'true');
+    }, 200);
+});
 </script>
 HTML;
     }

@@ -108,47 +108,6 @@ $pageTitle = 'Iniciar Sesión - Sistema de Métricas';
                         </button>
                     </div>
                 </form>
-
-                <hr class="my-4">
-
-                <div class="text-center">
-                    <h4 class="mb-3">Usuarios de Prueba</h4>
-                    <div class="row g-2">
-                        <div class="col-12">
-                            <div class="d-flex align-items-center p-2 border rounded">
-                                <span class="avatar avatar-sm me-3" style="background-color: #ef4444;">SA</span>
-                                <div class="flex-fill text-start">
-                                    <div class="fw-bold"><code>superadmin</code></div>
-                                    <div class="text-muted small">Super Admin - Ve TODO</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="d-flex align-items-center p-2 border rounded">
-                                <span class="avatar avatar-sm me-3" style="background-color: #f59e0b;">AT</span>
-                                <div class="flex-fill text-start">
-                                    <div class="fw-bold"><code>admin_ti</code></div>
-                                    <div class="text-muted small">Admin TI Corporativo</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="d-flex align-items-center p-2 border rounded">
-                                <span class="avatar avatar-sm me-3" style="background-color: #3b82f6;">VS</span>
-                                <div class="flex-fill text-start">
-                                    <div class="fw-bold"><code>viewer_software</code></div>
-                                    <div class="text-muted small">Viewer - Solo lectura</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="ti ti-info-circle me-1"></i>
-                            Contraseña para todos: <code>password</code>
-                        </small>
-                    </div>
-                </div>
             </div>
 
             <div class="card-footer text-center py-3">

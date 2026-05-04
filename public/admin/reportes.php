@@ -17,9 +17,15 @@ $reporteModel = new Reporte();
 
 // Filtros
 $departamento_filter = $_GET['departamento'] ?? null;
-$area_filter = $_GET['area'] ?? null;
 $estado_filter = $_GET['estado'] ?? null;
 $search = $_GET['search'] ?? '';
+
+// Para area_admin, forzar su área asignada
+if ($user['rol'] === 'area_admin') {
+    $area_filter = $user['area_id'];
+} else {
+    $area_filter = $_GET['area'] ?? null;
+}
 
 // Obtener reportes según permisos
 if ($user['rol'] === 'super_admin') {
@@ -41,6 +47,9 @@ if ($user['rol'] === 'super_admin') {
     } else {
         $reportes = $reporteModel->getByDepartamento($user['departamento_id'], $estado_filter);
     }
+} elseif ($user['rol'] === 'area_admin') {
+    // Solo puede ver reportes de su área
+    $reportes = $reporteModel->getByArea($user['area_id'], $estado_filter);
 }
 
 // Búsqueda
@@ -55,6 +64,24 @@ $pageTitle = 'Gestión de Reportes';
 require_once __DIR__ . '/../../views/layouts/header.php';
 ?>
 
+<style>
+/* Estilos para tabla en modo oscuro */
+[data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+    --tblr-table-accent-bg: rgba(255, 255, 255, 0.05) !important;
+    color: var(--tblr-body-color);
+}
+
+[data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(even) > * {
+    background-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .table {
+    --tblr-table-bg: transparent;
+    --tblr-table-striped-bg: rgba(255, 255, 255, 0.05);
+    color: var(--tblr-body-color);
+}
+</style>
+
 <div class="page-wrapper">
     <div class="page-body">
         <div class="container-xl">
@@ -63,6 +90,12 @@ require_once __DIR__ . '/../../views/layouts/header.php';
             <div class="page-header mb-4">
                 <div class="row align-items-center">
                     <div class="col">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="<?php echo baseUrl('/public/admin/index.php'); ?>">Administración</a></li>
+                                <li class="breadcrumb-item active">Reportes</li>
+                            </ol>
+                        </nav>
                         <h2 class="page-title">
                             <i class="ti ti-file-text me-2"></i>
                             Reportes Escritos
@@ -476,5 +509,12 @@ document.getElementById('btn-continuar-reporte')?.addEventListener('click', func
     window.location.href = url;
 });
 </script>
+
+<!-- Bootstrap 5 JS (incluye Dropdown) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Tabler JS -->
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+<script src="<?php echo baseUrl('/public/assets/js/theme-toggle.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../views/layouts/footer.php'; ?>

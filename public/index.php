@@ -7,18 +7,39 @@ use App\Services\PermissionService;
 use App\Models\Grafico;
 use App\Models\ValorMetrica;
 use App\Models\Periodo;
+use App\Models\Departamento;
+use App\Models\Area;
 use App\Utils\ChartRegistry;
 
 // Verificar autenticación
 AuthMiddleware::handle();
 
 $user = getCurrentUser();
-$is_admin = in_array($user['rol'], ['super_admin', 'dept_admin']);
+$is_admin = in_array($user['rol'], ['super_admin', 'dept_admin', 'area_admin']);
+
+// Inicializar modelos (necesarios para home_selector.php)
+$deptModel = new Departamento();
+$areaModel = new Area();
+
+// CASO ESPECIAL: area_admin debe ir directo a su área asignada
+if ($user['rol'] === 'area_admin') {
+    if (empty($user['area_id'])) {
+        die('Tu usuario no tiene un área asignada. Contacta al administrador.');
+    }
+
+    // Si no hay área en URL o es diferente a la asignada, redirigir
+    $area_param = $_GET['area'] ?? null;
+    if (!$area_param || (int)$area_param !== (int)$user['area_id']) {
+        $periodo_param = $_GET['periodo'] ?? date('Y') . '-' . date('n');
+        header('Location: ?area=' . $user['area_id'] . '&periodo=' . $periodo_param);
+        exit;
+    }
+}
 
 // Obtener departamentos permitidos
 $departamentos = PermissionService::getDepartamentosPermitidos($user);
 
-if (empty($departamentos)) {
+if (empty($departamentos) && $user['rol'] !== 'area_admin') {
     die('No tienes acceso a ningún departamento. Contacta al administrador.');
 }
 
@@ -27,6 +48,9 @@ $dept_id = $_GET['dept'] ?? null;
 
 // Si es super_admin y no hay departamento seleccionado, mostrar todas las áreas
 if ($user['rol'] === 'super_admin' && !$dept_id) {
+    $areas = PermissionService::getAreasPermitidas($user, null);
+} else if ($user['rol'] === 'area_admin') {
+    // area_admin solo ve su área asignada
     $areas = PermissionService::getAreasPermitidas($user, null);
 } else {
     // Para otros roles o si hay departamento seleccionado
@@ -41,10 +65,35 @@ if ($user['rol'] === 'super_admin' && !$dept_id) {
     $areas = PermissionService::getAreasPermitidas($user, $dept_id);
 }
 
+// Si no hay área seleccionada, mostrar página de selección por tipos (solo para super_admin)
+// Para otros usuarios, seleccionar la primera área automáticamente
+if (!isset($_GET['area']) && $user['rol'] === 'super_admin' && count($areas) > 1) {
+    // Mostrar vista de selección organizada por tipos
+    require_once __DIR__ . '/../views/home_selector.php';
+    exit;
+}
+
 $area_id = $_GET['area'] ?? ($areas[0]['id'] ?? null);
 
+// Si no hay áreas disponibles, redirigir según el rol
 if (!$area_id) {
-    die('No se encontró un área válida.');
+    // Si es admin, redirigir al panel de administración para crear áreas
+    if (in_array($user['rol'], ['super_admin', 'dept_admin', 'area_admin'])) {
+        header('Location: ' . baseUrl('/public/admin/index.php') . '?mensaje=sin_areas');
+        exit;
+    }
+
+    // Si es viewer, mostrar mensaje
+    $pageTitle = 'Sin áreas disponibles';
+    require_once __DIR__ . '/../views/layouts/header.php';
+    echo '<div class="page-wrapper"><div class="page-body"><div class="container-xl">';
+    echo '<div class="empty text-center py-5">';
+    echo '<div class="empty-icon mb-3"><i class="ti ti-alert-circle" style="font-size: 4rem; color: #f59f00;"></i></div>';
+    echo '<h2>No hay áreas disponibles</h2>';
+    echo '<p class="text-muted">Contacta al administrador para que configure áreas en el sistema.</p>';
+    echo '</div></div></div></div>';
+    require_once __DIR__ . '/../views/layouts/footer.php';
+    exit;
 }
 
 // Verificar permiso para el área
@@ -53,14 +102,13 @@ if (!PermissionService::canViewArea($user, $area_id)) {
 }
 
 // Obtener información del área y departamento
-use App\Models\Departamento;
-use App\Models\Area;
-
-$deptModel = new Departamento();
-$areaModel = new Area();
-
 $departamento_actual = $dept_id ? $deptModel->find($dept_id) : null;
 $area_actual = $area_id ? $areaModel->findWithDepartamento($area_id) : null;
+
+// Verificar que el área existe
+if (!$area_actual) {
+    die('El área solicitada no existe o no está disponible. <a href="?">Volver al inicio</a>');
+}
 
 // Obtener período actual o seleccionado
 $periodoModel = new Periodo();
@@ -128,9 +176,13 @@ require_once __DIR__ . '/../views/layouts/header.php';
                             Todas las Áreas
                         </a>
                         <div class="dropdown-divider"></div>
-                        <?php foreach ($departamentos as $dept): ?>
+                        <?php foreach ($departamentos as $dept):
+                            // Obtener la primera área del departamento para el enlace directo
+                            $areas_dept = $areaModel->getByDepartamento($dept['id']);
+                            $primera_area = !empty($areas_dept) ? $areas_dept[0]['id'] : null;
+                        ?>
                         <a class="dropdown-item <?php echo ($dept_id == $dept['id']) ? 'active' : ''; ?>"
-                           href="?dept=<?php echo $dept['id']; ?>&periodo=<?php echo $ejercicio . '-' . $periodo_mes; ?>">
+                           href="?dept=<?php echo $dept['id']; ?><?php echo $primera_area ? '&area=' . $primera_area : ''; ?>&periodo=<?php echo $ejercicio . '-' . $periodo_mes; ?>">
                             <i class="ti ti-<?php echo e($dept['icono']); ?> me-2"></i>
                             <?php echo e($dept['nombre']); ?>
                         </a>
@@ -141,19 +193,85 @@ require_once __DIR__ . '/../views/layouts/header.php';
         <?php endif; ?>
 
         <!-- Áreas -->
-        <div class="navbar-nav flex-nowrap overflow-auto">
+        <div class="navbar-nav flex-nowrap overflow-auto" id="areas-nav">
             <?php foreach ($areas as $area): ?>
-                <a class="nav-link <?php echo ($area['id'] == $area_id) ? 'active' : ''; ?>"
+                <a class="nav-link area-nav-link <?php echo ($area['id'] == $area_id) ? 'active' : ''; ?>"
                    href="?<?php echo $dept_id ? 'dept=' . $dept_id . '&' : ''; ?>area=<?php echo $area['id']; ?>&periodo=<?php echo $ejercicio . '-' . $periodo_mes; ?><?php echo $is_edit_mode ? '&edit=1' : ''; ?>"
-                   title="<?php echo e($area['departamento_nombre'] ?? ''); ?>">
-                    <i class="ti ti-<?php echo e($area['icono'] ?? 'chart-bar'); ?> me-1"></i>
-                    <?php echo e($area['nombre']); ?>
-                    <?php if ($user['rol'] === 'super_admin' && !$dept_id): ?>
-                        <span class="badge bg-blue-lt ms-1"><?php echo e(substr($area['departamento_nombre'] ?? '', 0, 3)); ?></span>
-                    <?php endif; ?>
+                   data-area-color="<?php echo e($area['color'] ?? '#206bc4'); ?>"
+                   style="<?php echo ($area['id'] == $area_id) ? 'background-color: ' . e($area['color'] ?? '#206bc4') . '; color: white;' : ''; ?>">
+                    <i class="ti ti-<?php echo e($area['icono'] ?? 'chart-bar'); ?> me-1"></i><?php echo e($area['nombre']); ?><?php if ($user['rol'] === 'super_admin' && !$dept_id && isset($area['departamento_nombre'])): ?><span class="badge ms-1 dept-badge" style="<?php echo ($area['id'] == $area_id) ? 'background-color: rgba(255,255,255,0.2); color: white;' : 'background-color: rgba(0,0,0,0.06);'; ?>"><?php echo e(substr($area['departamento_nombre'], 0, 3)); ?></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </div>
+
+        <style>
+        /* Mejorar navegación de áreas */
+        #areas-nav {
+            gap: 0.25rem;
+            padding: 0.25rem 0;
+        }
+
+        .area-nav-link {
+            white-space: nowrap !important;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+            display: inline-flex !important;
+            align-items: center;
+            flex-shrink: 0 !important;
+            width: auto !important;
+            max-width: none !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            transition: all 0.2s;
+        }
+
+        .area-nav-link:hover {
+            opacity: 0.8;
+        }
+
+        .area-nav-link.active {
+            color: white !important;
+            font-weight: 500;
+        }
+
+        .area-nav-link .dept-badge {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.35rem;
+            flex-shrink: 0;
+        }
+
+        /* Scroll suave */
+        #areas-nav {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #areas-nav::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        #areas-nav::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        #areas-nav::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(0,0,0,0.3);
+        }
+        </style>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-scroll al área activa
+            const activeLink = document.querySelector('.area-nav-link.active');
+            if (activeLink) {
+                setTimeout(() => {
+                    activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }, 100);
+            }
+        });
+        </script>
     </div>
 </div>
 
@@ -197,12 +315,6 @@ require_once __DIR__ . '/../views/layouts/header.php';
                                 <?php endforeach; ?>
                             </div>
                         </div>
-
-                        <!-- Botón de Exportación -->
-                        <button type="button" class="btn btn-outline-primary me-2" onclick="ExportModule.showExportModal()">
-                            <i class="ti ti-download me-1"></i>
-                            Exportar
-                        </button>
 
                         <!-- Botones de Admin -->
                         <?php if ($is_admin && $area_id): ?>
@@ -266,20 +378,24 @@ require_once __DIR__ . '/../views/layouts/header.php';
 
                         // Extraer IDs de métricas del gráfico
                         $metrica_ids = [];
-                        if (isset($config['metrica_id'])) {
+                        if (isset($config['metrica_id']) && is_scalar($config['metrica_id'])) {
                             $metrica_ids[] = $config['metrica_id'];
                         }
                         if (isset($config['metricas']) && is_array($config['metricas'])) {
-                            $metrica_ids = array_merge($metrica_ids, $config['metricas']);
+                            foreach ($config['metricas'] as $m) {
+                                if (is_scalar($m)) {
+                                    $metrica_ids[] = $m;
+                                }
+                            }
                         }
                         if (isset($config['metrica_1'])) {
                             for ($i = 1; $i <= 5; $i++) {
-                                if (!empty($config["metrica_$i"])) {
+                                if (!empty($config["metrica_$i"]) && is_scalar($config["metrica_$i"])) {
                                     $metrica_ids[] = $config["metrica_$i"];
                                 }
                             }
                         }
-                        $metrica_ids = array_unique($metrica_ids);
+                        $metrica_ids = array_unique(array_filter($metrica_ids));
                         ?>
                         <div class="grid-stack-item"
                              gs-id="<?php echo $grafico['id']; ?>"
@@ -302,7 +418,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                                     <?php endif; ?>
                                 </div>
                                 <div class="card-body p-0">
-                                    <?php echo ChartRegistry::render($grafico['tipo'], $config, $metrica_data, $area_color); ?>
+                                    <?php echo ChartRegistry::render($grafico['tipo'], $config, $metrica_data, $area_color, $periodo); ?>
                                 </div>
                             </div>
                         </div>
@@ -329,7 +445,8 @@ document.addEventListener('DOMContentLoaded', function() {
         cellHeight: 80,
         margin: 10,
         float: false,
-        animate: true
+        animate: true,
+        minRow: 20  // Mínimo 20 filas para asegurar espacio de scroll
     });
 
     // Guardar posiciones al cambiar
@@ -363,12 +480,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function agregarGrafico() {
-    window.location.href = '<?php echo baseUrl("/public/admin/configurar-graficos.php?area="); ?><?php echo $area_id; ?>';
+    window.location.href = '<?php echo baseUrl("/public/admin/graficos.php?area="); ?><?php echo $area_id; ?>';
 }
 
 function eliminarGrafico(id) {
     if (confirm('¿Eliminar este gráfico?')) {
-        window.location.href = '<?php echo baseUrl("/public/admin/configurar-graficos.php?area="); ?><?php echo $area_id; ?>&eliminar=' + id;
+        window.location.href = '<?php echo baseUrl("/public/admin/graficos.php?area="); ?><?php echo $area_id; ?>&eliminar=' + id;
     }
 }
 </script>

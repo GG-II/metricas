@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = [
                     'nombre' => sanitize($_POST['nombre']),
                     'descripcion' => sanitize($_POST['descripcion'] ?? ''),
+                    'tipo' => sanitize($_POST['tipo']),
                     'icono' => sanitize($_POST['icono']),
                     'color' => sanitize($_POST['color']),
                     'orden' => $maxOrden + 1,
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = [
                     'nombre' => sanitize($_POST['nombre']),
                     'descripcion' => sanitize($_POST['descripcion'] ?? ''),
+                    'tipo' => sanitize($_POST['tipo']),
                     'icono' => sanitize($_POST['icono']),
                     'color' => sanitize($_POST['color'])
                 ];
@@ -225,6 +227,23 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="mb-3">
                         <label class="form-label">Descripción</label>
                         <textarea name="descripcion" class="form-control" rows="3"><?php echo e($editando['descripcion'] ?? ''); ?></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">Tipo</label>
+                        <select name="tipo" class="form-select" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="agencia" <?php echo (isset($editando['tipo']) && $editando['tipo'] === 'agencia') ? 'selected' : ''; ?>>
+                                🏢 Agencia (Sucursal física)
+                            </option>
+                            <option value="corporativo" <?php echo (isset($editando['tipo']) && $editando['tipo'] === 'corporativo') ? 'selected' : ''; ?>>
+                                🏛️ Corporativo (Administrativo)
+                            </option>
+                            <option value="global" <?php echo (isset($editando['tipo']) && $editando['tipo'] === 'global') ? 'selected' : ''; ?>>
+                                🌐 Global (Métricas consolidadas)
+                            </option>
+                        </select>
+                        <div class="form-hint">Define la naturaleza del departamento</div>
                     </div>
 
                     <div class="row">

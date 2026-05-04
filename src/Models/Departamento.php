@@ -70,4 +70,65 @@ class Departamento extends Model {
         $result = $stmt->fetch();
         return (int)($result['max_orden'] ?? 0);
     }
+
+    /**
+     * Obtener solo departamentos tipo 'agencia' activos
+     *
+     * @return array Lista de agencias
+     */
+    public function getAgencias() {
+        $stmt = $this->db->query("
+            SELECT * FROM {$this->table}
+            WHERE tipo = 'agencia' AND activo = 1
+            ORDER BY orden, nombre
+        ");
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Obtener solo departamentos tipo 'corporativo' activos
+     *
+     * @return array Lista de departamentos corporativos
+     */
+    public function getCorporativos() {
+        $stmt = $this->db->query("
+            SELECT * FROM {$this->table}
+            WHERE tipo = 'corporativo' AND activo = 1
+            ORDER BY orden, nombre
+        ");
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Obtener departamento tipo 'global'
+     *
+     * @return array|false Departamento global o false si no existe
+     */
+    public function getGlobal() {
+        $stmt = $this->db->query("
+            SELECT * FROM {$this->table}
+            WHERE tipo = 'global' AND activo = 1
+            LIMIT 1
+        ");
+        return $stmt->fetch();
+    }
+
+    /**
+     * Obtener estadísticas de departamentos agrupados por tipo
+     *
+     * @return array Conteo de departamentos por tipo
+     */
+    public function getStatsByTipo() {
+        $stmt = $this->db->query("
+            SELECT
+                tipo,
+                COUNT(*) as total,
+                SUM(activo) as activos,
+                SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
+            FROM {$this->table}
+            GROUP BY tipo
+            ORDER BY FIELD(tipo, 'agencia', 'corporativo', 'global')
+        ");
+        return $stmt->fetchAll();
+    }
 }
