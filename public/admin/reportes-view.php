@@ -72,8 +72,36 @@ $pageTitle = $reporte['titulo'];
         .reporte-portada {
             text-align: center;
             padding: 4rem 2rem;
-            border-bottom: 3px solid #3b82f6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
             margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .portada-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .portada-icon i {
+            font-size: 3rem;
+            color: white;
+        }
+
+        .reporte-portada h1,
+        .reporte-portada h3,
+        .reporte-portada h4,
+        .reporte-portada p {
+            color: white;
         }
 
         .reporte-section {
@@ -84,19 +112,46 @@ $pageTitle = $reporte['titulo'];
             margin-bottom: 2.5rem;
             padding: 2rem;
             background: #f8fafc;
-            border-radius: 8px;
-            border-left: 4px solid #3b82f6;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         [data-bs-theme="dark"] .area-section {
             background: #0f172a;
+            border-color: #334155;
+        }
+
+        .area-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        [data-bs-theme="dark"] .area-header {
+            border-bottom-color: #334155;
+        }
+
+        .area-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+            flex-shrink: 0;
         }
 
         .grafico-container {
             margin: 2rem 0;
             padding: 1.5rem;
             background: white;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
 
@@ -109,6 +164,14 @@ $pageTitle = $reporte['titulo'];
             line-height: 1.8;
             font-size: 1.05rem;
             white-space: pre-wrap;
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        [data-bs-theme="dark"] .resumen-ejecutivo {
+            background: #0f172a;
         }
     </style>
 </head>
@@ -147,30 +210,29 @@ $pageTitle = $reporte['titulo'];
 
                 <!-- PORTADA -->
                 <div class="reporte-portada">
-                    <div class="mb-4">
-                        <span class="avatar avatar-xl" style="background-color: <?php echo $reporte['departamento_color'] ?? '#3b82f6'; ?>">
-                            <i class="ti ti-<?php echo $reporte['departamento_icono'] ?? 'building'; ?>" style="font-size: 2rem;"></i>
-                        </span>
+                    <div class="portada-icon">
+                        <i class="ti ti-<?php echo $reporte['departamento_icono'] ?? 'building'; ?>"></i>
                     </div>
                     <h1 class="display-5 mb-3"><?php echo htmlspecialchars($reporte['titulo']); ?></h1>
-                    <h3 class="text-muted mb-2"><?php echo htmlspecialchars($reporte['departamento_nombre']); ?></h3>
-                    <h4 class="text-muted">
+                    <h3 class="mb-2"><?php echo htmlspecialchars($reporte['departamento_nombre']); ?></h3>
+                    <h4 class="mb-3">
                         <?php echo $meses[$reporte['mes']]; ?> <?php echo $reporte['anio']; ?>
                     </h4>
                     <?php if ($reporte['descripcion']): ?>
-                    <p class="text-muted mt-3"><?php echo htmlspecialchars($reporte['descripcion']); ?></p>
+                    <p class="mt-3" style="font-size: 1.1rem; opacity: 0.9;"><?php echo htmlspecialchars($reporte['descripcion']); ?></p>
                     <?php endif; ?>
 
                     <div class="mt-4 d-flex justify-content-center gap-3">
                         <?php
                         $estadoClass = [
-                            'borrador' => 'bg-gray-lt',
-                            'revision' => 'bg-yellow-lt',
-                            'publicado' => 'bg-green-lt',
-                            'archivado' => 'bg-secondary-lt'
+                            'borrador' => 'bg-warning',
+                            'revision' => 'bg-info',
+                            'publicado' => 'bg-success',
+                            'archivado' => 'bg-secondary'
                         ];
                         ?>
-                        <span class="badge <?php echo $estadoClass[$reporte['estado']] ?? 'bg-secondary-lt'; ?> fs-5 px-3 py-2">
+                        <span class="badge <?php echo $estadoClass[$reporte['estado']] ?? 'bg-secondary'; ?>" style="font-size: 0.95rem; padding: 0.6rem 1.2rem;">
+                            <i class="ti ti-circle-check me-1"></i>
                             <?php echo ucfirst($reporte['estado']); ?>
                         </span>
                     </div>
@@ -200,16 +262,17 @@ $pageTitle = $reporte['titulo'];
                     <?php else: ?>
                         <?php foreach ($reporte['areas'] as $area): ?>
                         <div class="area-section">
-                            <h3 class="mb-3">
-                                <span class="avatar avatar-sm me-2" style="background-color: <?php echo $area['color'] ?? '#3b82f6'; ?>">
+                            <div class="area-header">
+                                <div class="area-icon" style="background-color: <?php echo $area['color'] ?? '#3b82f6'; ?>">
                                     <i class="ti ti-<?php echo $area['icono'] ?? 'folder'; ?>"></i>
-                                </span>
-                                <?php echo htmlspecialchars($area['nombre']); ?>
-                            </h3>
-
-                            <?php if (!empty($area['descripcion'])): ?>
-                            <p class="text-muted"><?php echo htmlspecialchars($area['descripcion']); ?></p>
-                            <?php endif; ?>
+                                </div>
+                                <div>
+                                    <h3 class="mb-1"><?php echo htmlspecialchars($area['nombre']); ?></h3>
+                                    <?php if (!empty($area['descripcion'])): ?>
+                                    <p class="text-muted mb-0 small"><?php echo htmlspecialchars($area['descripcion']); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
 
                             <?php if (empty($area['graficos'])): ?>
                                 <p class="text-muted small">
