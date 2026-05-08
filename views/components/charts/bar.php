@@ -183,7 +183,7 @@ JS,
                 dataLabels: {
                     enabled: <?php echo $mostrar_valores ? 'true' : 'false'; ?>,
                     formatter: function (val) {
-                        return val.toFixed(0);
+                        return formatNumber(val, 0);
                     },
                     offsetY: -20,
                     style: {
@@ -233,7 +233,7 @@ JS,
                     theme: 'dark',
                     y: {
                         formatter: function (val) {
-                            return val.toFixed(0) + ' <?php echo htmlspecialchars($metrica_data['unidad'] ?? ''); ?>';
+                            return formatChartValue(val, '<?php echo htmlspecialchars($metrica_data['unidad'] ?? ''); ?>', 0);
                         }
                     }
                 }

@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dataLabels: {
                 enabled: true,
                 formatter: function(val) {
-                    return Math.round(val);
+                    return formatNumber(val, 0);
                 }
             },
             xaxis: {
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tooltip: {
                 y: {
                     formatter: function(val) {
-                        return Math.round(val);
+                        return formatNumber(val, 0);
                     }
                 }
             }

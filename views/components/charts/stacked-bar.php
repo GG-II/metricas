@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
             yaxis: {
                 labels: {
                     formatter: function(val) {
-                        return Math.round(val);
+                        return formatNumber(val, 0);
                     }
                 }
             },
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 intersect: false,
                 y: {
                     formatter: function(val) {
-                        return Math.round(val);
+                        return formatNumber(val, 0);
                     }
                 }
             },

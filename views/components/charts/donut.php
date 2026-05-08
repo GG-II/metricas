@@ -257,7 +257,7 @@ JS,
                     theme: 'dark',
                     y: {
                         formatter: function(val) {
-                            return val.toFixed(0);
+                            return formatNumber(val, 0);
                         }
                     }
                 }

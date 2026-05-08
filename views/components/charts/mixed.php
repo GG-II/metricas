@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
             yaxis: {
                 labels: {
                     formatter: function(val) {
-                        return Math.round(val);
+                        return formatNumber(val, 0);
                     }
                 }
             },

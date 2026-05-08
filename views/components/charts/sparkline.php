@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 y: {
                     formatter: function(val) {
-                        return val + ' {$metrica['unidad']}';
+                        return formatChartValue(val, '{$metrica['unidad']}', 0);
                     }
                 }
             }
