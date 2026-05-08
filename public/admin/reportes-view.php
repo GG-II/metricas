@@ -374,7 +374,8 @@ $pageTitle = $reporte['titulo'];
                                         }
 
                                         if (isset($chartComponent['render']) && is_callable($chartComponent['render'])) {
-                                            echo $chartComponent['render']($config, $metrica_data, $area['color'] ?? '#3b82f6');
+                                            // Algunos componentes (como donut) necesitan el período como 4to parámetro
+                                            echo $chartComponent['render']($config, $metrica_data, $area['color'] ?? '#3b82f6', $periodo);
                                         } else {
                                             echo '<div class="alert alert-warning">Gráfico no disponible</div>';
                                         }
