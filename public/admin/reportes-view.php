@@ -352,7 +352,9 @@ $pageTitle = $reporte['titulo'];
 
                                     <?php
                                     // Cargar y renderizar el gráfico
-                                    $graficoPath = __DIR__ . '/../../views/components/charts/' . $grafico['tipo'] . '.php';
+                                    // Normalizar nombre: convertir guión bajo a guión (kpi_card -> kpi-card)
+                                    $tipoNormalizado = str_replace('_', '-', $grafico['tipo']);
+                                    $graficoPath = __DIR__ . '/../../views/components/charts/' . $tipoNormalizado . '.php';
                                     if (file_exists($graficoPath)) {
                                         $chartComponent = require $graficoPath;
                                         $config = json_decode($grafico['configuracion'], true);
