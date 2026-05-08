@@ -9,61 +9,27 @@ class Reporte extends Model
     protected $table = 'reportes';
 
     /**
-     * Obtener todos los reportes con información de área y usuario
+     * Obtener todos los reportes con información de departamento y usuario
      */
     public function getAllWithDetails()
     {
         $stmt = $this->db->query("
             SELECT
                 r.*,
-                a.nombre as area_nombre,
-                a.color as area_color,
-                a.icono as area_icono,
                 d.nombre as departamento_nombre,
-                d.id as departamento_id,
-                p.nombre as periodo_nombre,
+                d.color as departamento_color,
+                d.icono as departamento_icono,
+                d.tipo as departamento_tipo,
                 u.nombre as autor_nombre,
                 um.nombre as modificador_nombre,
                 up.nombre as publicador_nombre
             FROM {$this->table} r
-            INNER JOIN areas a ON r.area_id = a.id
-            INNER JOIN departamentos d ON a.departamento_id = d.id
-            LEFT JOIN periodos p ON r.periodo_id = p.id
+            INNER JOIN departamentos d ON r.departamento_id = d.id
             LEFT JOIN usuarios u ON r.usuario_creacion_id = u.id
             LEFT JOIN usuarios um ON r.usuario_modificacion_id = um.id
             LEFT JOIN usuarios up ON r.usuario_publicacion_id = up.id
-            ORDER BY r.created_at DESC
+            ORDER BY r.anio DESC, r.mes DESC, r.created_at DESC
         ");
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Obtener reportes por área
-     */
-    public function getByArea($area_id, $estado = null)
-    {
-        $sql = "
-            SELECT
-                r.*,
-                a.nombre as area_nombre,
-                p.nombre as periodo_nombre,
-                u.nombre as autor_nombre
-            FROM {$this->table} r
-            INNER JOIN areas a ON r.area_id = a.id
-            LEFT JOIN periodos p ON r.periodo_id = p.id
-            LEFT JOIN usuarios u ON r.usuario_creacion_id = u.id
-            WHERE r.area_id = ?
-        ";
-
-        if ($estado) {
-            $sql .= " AND r.estado = ?";
-            $stmt = $this->db->prepare($sql . " ORDER BY r.anio DESC, r.periodo_id DESC");
-            $stmt->execute([$area_id, $estado]);
-        } else {
-            $stmt = $this->db->prepare($sql . " ORDER BY r.anio DESC, r.periodo_id DESC");
-            $stmt->execute([$area_id]);
-        }
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -76,25 +42,22 @@ class Reporte extends Model
         $sql = "
             SELECT
                 r.*,
-                a.nombre as area_nombre,
-                a.id as area_id,
                 d.nombre as departamento_nombre,
-                p.nombre as periodo_nombre,
+                d.color as departamento_color,
+                d.icono as departamento_icono,
                 u.nombre as autor_nombre
             FROM {$this->table} r
-            INNER JOIN areas a ON r.area_id = a.id
-            INNER JOIN departamentos d ON a.departamento_id = d.id
-            LEFT JOIN periodos p ON r.periodo_id = p.id
+            INNER JOIN departamentos d ON r.departamento_id = d.id
             LEFT JOIN usuarios u ON r.usuario_creacion_id = u.id
-            WHERE d.id = ?
+            WHERE r.departamento_id = ?
         ";
 
         if ($estado) {
             $sql .= " AND r.estado = ?";
-            $stmt = $this->db->prepare($sql . " ORDER BY r.anio DESC, r.periodo_id DESC");
+            $stmt = $this->db->prepare($sql . " ORDER BY r.anio DESC, r.mes DESC");
             $stmt->execute([$departamento_id, $estado]);
         } else {
-            $stmt = $this->db->prepare($sql . " ORDER BY r.anio DESC, r.periodo_id DESC");
+            $stmt = $this->db->prepare($sql . " ORDER BY r.anio DESC, r.mes DESC");
             $stmt->execute([$departamento_id]);
         }
 
@@ -102,30 +65,37 @@ class Reporte extends Model
     }
 
     /**
-     * Obtener reporte con todos los detalles (área, gráficos insertados, etc)
+     * Obtener mes en formato texto
+     */
+    public function getMesNombre($mes)
+    {
+        $meses = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+        return $meses[$mes] ?? '';
+    }
+
+    /**
+     * Obtener reporte con todos los detalles (departamento, áreas, gráficos auto-generados)
      */
     public function findWithFullDetails($id)
     {
         $stmt = $this->db->prepare("
             SELECT
                 r.*,
-                a.nombre as area_nombre,
-                a.color as area_color,
-                a.icono as area_icono,
-                a.id as area_id,
                 d.nombre as departamento_nombre,
-                d.id as departamento_id,
-                p.nombre as periodo_nombre,
-                p.ejercicio,
-                p.periodo,
+                d.color as departamento_color,
+                d.icono as departamento_icono,
+                d.tipo as departamento_tipo,
+                d.descripcion as departamento_descripcion,
                 u.nombre as autor_nombre,
                 u.email as autor_email,
                 um.nombre as modificador_nombre,
                 up.nombre as publicador_nombre
             FROM {$this->table} r
-            INNER JOIN areas a ON r.area_id = a.id
-            INNER JOIN departamentos d ON a.departamento_id = d.id
-            LEFT JOIN periodos p ON r.periodo_id = p.id
+            INNER JOIN departamentos d ON r.departamento_id = d.id
             LEFT JOIN usuarios u ON r.usuario_creacion_id = u.id
             LEFT JOIN usuarios um ON r.usuario_modificacion_id = um.id
             LEFT JOIN usuarios up ON r.usuario_publicacion_id = up.id
@@ -135,47 +105,59 @@ class Reporte extends Model
         $reporte = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($reporte) {
-            // Obtener gráficos insertados
-            $reporte['graficos'] = $this->getGraficosInsertados($id);
+            // Obtener todas las áreas del departamento
+            $reporte['areas'] = $this->getAreasConGraficos($reporte['departamento_id']);
+            $reporte['mes_nombre'] = $this->getMesNombre($reporte['mes']);
         }
 
         return $reporte;
     }
 
     /**
-     * Obtener gráficos insertados en un reporte
+     * Obtener todas las áreas de un departamento con sus gráficos configurados
      */
-    public function getGraficosInsertados($reporte_id)
+    public function getAreasConGraficos($departamento_id)
     {
-        $stmt = $this->db->prepare("
-            SELECT
-                rg.*,
-                cg.titulo as grafico_titulo_original,
-                cg.tipo as grafico_tipo
-            FROM reportes_graficos rg
-            LEFT JOIN configuracion_graficos cg ON rg.grafico_id = cg.id
-            WHERE rg.reporte_id = ?
-            ORDER BY rg.posicion_en_reporte ASC
+        // Obtener áreas del departamento
+        $stmtAreas = $this->db->prepare("
+            SELECT id, nombre, descripcion, color, icono
+            FROM areas
+            WHERE departamento_id = ? AND activo = 1
+            ORDER BY orden ASC, nombre ASC
         ");
-        $stmt->execute([$reporte_id]);
+        $stmtAreas->execute([$departamento_id]);
+        $areas = $stmtAreas->fetchAll(PDO::FETCH_ASSOC);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Para cada área, obtener sus gráficos configurados
+        foreach ($areas as &$area) {
+            $stmtGraficos = $this->db->prepare("
+                SELECT id, titulo, tipo, configuracion, ancho_columnas, altura
+                FROM configuracion_graficos
+                WHERE area_id = ? AND activo = 1
+                ORDER BY posicion ASC
+            ");
+            $stmtGraficos->execute([$area['id']]);
+            $area['graficos'] = $stmtGraficos->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return $areas;
     }
 
+
     /**
-     * Crear nuevo reporte
+     * Crear nuevo reporte consolidado por departamento
      */
     public function create($data)
     {
         $stmt = $this->db->prepare("
             INSERT INTO {$this->table} (
-                area_id,
-                periodo_id,
+                departamento_id,
+                mes,
                 anio,
                 tipo_reporte,
                 titulo,
                 descripcion,
-                contenido,
+                resumen_ejecutivo,
                 estado,
                 usuario_creacion_id,
                 version
@@ -183,13 +165,13 @@ class Reporte extends Model
         ");
 
         $stmt->execute([
-            $data['area_id'],
-            $data['periodo_id'] ?? null,
+            $data['departamento_id'],
+            $data['mes'],
             $data['anio'],
             $data['tipo_reporte'] ?? 'mensual',
             $data['titulo'],
             $data['descripcion'] ?? '',
-            $data['contenido'] ?? '',
+            $data['resumen_ejecutivo'] ?? '',
             $data['estado'] ?? 'borrador',
             $data['usuario_creacion_id'],
             1 // versión inicial
@@ -214,9 +196,9 @@ class Reporte extends Model
             $fields[] = 'descripcion = ?';
             $values[] = $data['descripcion'];
         }
-        if (isset($data['contenido'])) {
-            $fields[] = 'contenido = ?';
-            $values[] = $data['contenido'];
+        if (isset($data['resumen_ejecutivo'])) {
+            $fields[] = 'resumen_ejecutivo = ?';
+            $values[] = $data['resumen_ejecutivo'];
         }
         if (isset($data['estado'])) {
             $fields[] = 'estado = ?';
@@ -267,72 +249,32 @@ class Reporte extends Model
     }
 
     /**
-     * Asociar gráfico al reporte (cuando se inserta)
-     */
-    public function insertarGrafico($reporte_id, $data)
-    {
-        $stmt = $this->db->prepare("
-            INSERT INTO reportes_graficos (
-                reporte_id,
-                grafico_id,
-                imagen_path,
-                imagen_thumbnail,
-                imagen_width,
-                imagen_height,
-                periodo_captura_id,
-                titulo_grafico,
-                posicion_en_reporte,
-                alineacion,
-                ajuste_texto,
-                ancho_display
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-
-        return $stmt->execute([
-            $reporte_id,
-            $data['grafico_id'],
-            $data['imagen_path'],
-            $data['imagen_thumbnail'] ?? null,
-            $data['imagen_width'] ?? null,
-            $data['imagen_height'] ?? null,
-            $data['periodo_captura_id'] ?? null,
-            $data['titulo_grafico'],
-            $data['posicion_en_reporte'] ?? 1,
-            $data['alineacion'] ?? 'center',
-            $data['ajuste_texto'] ?? 'inline',
-            $data['ancho_display'] ?? null
-        ]);
-    }
-
-    /**
      * Buscar reportes (para búsqueda full-text)
      */
-    public function search($query, $area_id = null)
+    public function search($query, $departamento_id = null)
     {
         $sql = "
             SELECT
                 r.*,
-                a.nombre as area_nombre,
-                p.nombre as periodo_nombre
+                d.nombre as departamento_nombre
             FROM {$this->table} r
-            INNER JOIN areas a ON r.area_id = a.id
-            LEFT JOIN periodos p ON r.periodo_id = p.id
+            INNER JOIN departamentos d ON r.departamento_id = d.id
             WHERE (
                 r.titulo LIKE ? OR
                 r.descripcion LIKE ? OR
-                r.contenido LIKE ?
+                r.resumen_ejecutivo LIKE ?
             )
         ";
 
         $searchTerm = '%' . $query . '%';
         $params = [$searchTerm, $searchTerm, $searchTerm];
 
-        if ($area_id) {
-            $sql .= " AND r.area_id = ?";
-            $params[] = $area_id;
+        if ($departamento_id) {
+            $sql .= " AND r.departamento_id = ?";
+            $params[] = $departamento_id;
         }
 
-        $sql .= " ORDER BY r.created_at DESC LIMIT 50";
+        $sql .= " ORDER BY r.anio DESC, r.mes DESC, r.created_at DESC LIMIT 50";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -341,9 +283,9 @@ class Reporte extends Model
     }
 
     /**
-     * Obtener estadísticas de reportes por área
+     * Obtener estadísticas de reportes por departamento
      */
-    public function getEstadisticasPorArea($area_id)
+    public function getEstadisticasPorDepartamento($departamento_id)
     {
         $stmt = $this->db->prepare("
             SELECT
@@ -352,27 +294,26 @@ class Reporte extends Model
                 SUM(CASE WHEN estado = 'borrador' THEN 1 ELSE 0 END) as borradores,
                 SUM(CASE WHEN estado = 'revision' THEN 1 ELSE 0 END) as en_revision
             FROM {$this->table}
-            WHERE area_id = ?
+            WHERE departamento_id = ?
         ");
-        $stmt->execute([$area_id]);
+        $stmt->execute([$departamento_id]);
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Verificar si existe reporte para período/área/tipo
+     * Verificar si existe reporte para mes/año/departamento
      */
-    public function existeReporte($area_id, $periodo_id, $anio, $tipo_reporte)
+    public function existeReporte($departamento_id, $mes, $anio)
     {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) as count
             FROM {$this->table}
-            WHERE area_id = ?
-            AND periodo_id = ?
+            WHERE departamento_id = ?
+            AND mes = ?
             AND anio = ?
-            AND tipo_reporte = ?
         ");
-        $stmt->execute([$area_id, $periodo_id, $anio, $tipo_reporte]);
+        $stmt->execute([$departamento_id, $mes, $anio]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $result['count'] > 0;

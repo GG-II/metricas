@@ -21,41 +21,23 @@ $departamento_filter = $_GET['departamento'] ?? null;
 $estado_filter = $_GET['estado'] ?? null;
 $search = $_GET['search'] ?? '';
 
-// Para area_admin, forzar su área asignada
-if ($user['rol'] === 'area_admin') {
-    $area_filter = $user['area_id'];
-} else {
-    $area_filter = $_GET['area'] ?? null;
-}
-
 // Obtener reportes según permisos
 if ($user['rol'] === 'super_admin') {
-    if ($area_filter) {
-        $reportes = $reporteModel->getByArea($area_filter, $estado_filter);
-    } elseif ($departamento_filter) {
+    if ($departamento_filter) {
         $reportes = $reporteModel->getByDepartamento($departamento_filter, $estado_filter);
     } else {
         $reportes = $reporteModel->getAllWithDetails();
     }
-} elseif ($user['rol'] === 'dept_admin') {
-    if ($area_filter) {
-        // Verificar que el área pertenece a su departamento
-        if (PermissionService::canViewArea($user, $area_filter)) {
-            $reportes = $reporteModel->getByArea($area_filter, $estado_filter);
-        } else {
-            die('No tienes permiso para ver reportes de esta área');
-        }
-    } else {
-        $reportes = $reporteModel->getByDepartamento($user['departamento_id'], $estado_filter);
-    }
+} elseif ($user['rol'] === 'dept_admin' || $user['rol'] === 'dept_viewer') {
+    $reportes = $reporteModel->getByDepartamento($user['departamento_id'], $estado_filter);
 } elseif ($user['rol'] === 'area_admin') {
-    // Solo puede ver reportes de su área
-    $reportes = $reporteModel->getByArea($user['area_id'], $estado_filter);
+    // area_admin puede ver reportes de su departamento
+    $reportes = $reporteModel->getByDepartamento($user['departamento_id'], $estado_filter);
 }
 
 // Búsqueda
 if ($search) {
-    $reportes = $reporteModel->search($search, $area_filter);
+    $reportes = $reporteModel->search($search, $departamento_filter);
 }
 
 // Obtener departamentos y áreas para filtros
@@ -126,7 +108,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
                         <!-- Departamento (Solo Super Admin) -->
                         <?php if ($user['rol'] === 'super_admin'): ?>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label">Departamento</label>
                             <select name="departamento" class="form-select" id="filtro-departamento">
                                 <option value="">Todos</option>
@@ -139,23 +121,6 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                             </select>
                         </div>
                         <?php endif; ?>
-
-                        <!-- Área -->
-                        <div class="col-md-3">
-                            <label class="form-label">Área</label>
-                            <select name="area" class="form-select" id="filtro-area">
-                                <option value="">Todas</option>
-                                <?php
-                                $areas = PermissionService::getAreasPermitidas($user, $departamento_filter);
-                                foreach ($areas as $area):
-                                ?>
-                                    <option value="<?php echo $area['id']; ?>"
-                                            <?php echo $area_filter == $area['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($area['nombre']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
 
                         <!-- Estado -->
                         <div class="col-md-2">
@@ -189,8 +154,8 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                         <thead>
                             <tr>
                                 <th>Título</th>
-                                <th>Área</th>
-                                <th>Período/Año</th>
+                                <th>Departamento</th>
+                                <th>Mes/Año</th>
                                 <th>Estado</th>
                                 <th>Autor</th>
                                 <th>Última Modificación</th>
@@ -211,8 +176,8 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <span class="avatar avatar-sm me-2" style="background-color: <?php echo $reporte['area_color'] ?? '#3b82f6'; ?>">
-                                                <i class="ti ti-<?php echo $reporte['area_icono'] ?? 'file-text'; ?>"></i>
+                                            <span class="avatar avatar-sm me-2" style="background-color: <?php echo $reporte['departamento_color'] ?? '#3b82f6'; ?>">
+                                                <i class="ti ti-<?php echo $reporte['departamento_icono'] ?? 'building'; ?>"></i>
                                             </span>
                                             <div>
                                                 <strong><?php echo htmlspecialchars($reporte['titulo']); ?></strong>
@@ -227,18 +192,22 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                     </td>
                                     <td>
                                         <span class="badge bg-azure-lt">
-                                            <?php echo htmlspecialchars($reporte['area_nombre']); ?>
-                                        </span>
-                                        <div class="small text-muted">
                                             <?php echo htmlspecialchars($reporte['departamento_nombre']); ?>
-                                        </div>
+                                        </span>
+                                        <?php if (isset($reporte['departamento_tipo'])): ?>
+                                            <div class="small text-muted text-capitalize">
+                                                <?php echo htmlspecialchars($reporte['departamento_tipo']); ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($reporte['periodo_nombre']): ?>
-                                            <?php echo htmlspecialchars($reporte['periodo_nombre']); ?>
-                                        <?php else: ?>
-                                            <span class="badge bg-purple-lt">Anual <?php echo $reporte['anio']; ?></span>
-                                        <?php endif; ?>
+                                        <?php
+                                        $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                                                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                                        ?>
+                                        <span class="badge bg-purple-lt">
+                                            <?php echo $meses[$reporte['mes']] ?? 'Mes ' . $reporte['mes']; ?> <?php echo $reporte['anio']; ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <?php
@@ -301,7 +270,8 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                             </a>
 
                                             <!-- Eliminar -->
-                                            <?php if (PermissionService::canEditArea($user, $reporte['area_id'])): ?>
+                                            <?php if ($user['rol'] === 'super_admin' ||
+                                                     ($user['rol'] === 'dept_admin' && $user['departamento_id'] == $reporte['departamento_id'])): ?>
                                             <button class="btn btn-sm btn-danger"
                                                     onclick="eliminarReporte(<?php echo $reporte['id']; ?>)"
                                                     title="Eliminar">
@@ -335,13 +305,16 @@ require_once __DIR__ . '/../../views/layouts/header.php';
             </div>
             <div class="modal-body">
                 <form id="form-nuevo-reporte">
-                    <p class="text-muted mb-3">Selecciona el departamento y área para el reporte:</p>
+                    <p class="text-muted mb-3">
+                        <i class="ti ti-info-circle me-1"></i>
+                        Crea un reporte consolidado que incluye automáticamente todas las áreas del departamento.
+                    </p>
 
                     <?php if ($user['rol'] === 'super_admin'): ?>
                     <!-- Departamento -->
                     <div class="mb-3">
                         <label class="form-label required">Departamento</label>
-                        <select class="form-select" id="modal-departamento" name="departamento" required>
+                        <select class="form-select" id="modal-departamento" name="departamento_id" required>
                             <option value="">Seleccionar departamento...</option>
                             <?php foreach ($departamentos as $dept): ?>
                                 <option value="<?php echo $dept['id']; ?>">
@@ -349,53 +322,29 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <div class="form-hint">El reporte incluirá todas las áreas de este departamento</div>
+                    </div>
+                    <?php else: ?>
+                    <input type="hidden" id="modal-departamento" name="departamento_id" value="<?php echo $user['departamento_id']; ?>">
+                    <div class="alert alert-info mb-3">
+                        <i class="ti ti-info-circle me-2"></i>
+                        Creando reporte para: <strong><?php echo htmlspecialchars($user['departamento_nombre'] ?? 'tu departamento'); ?></strong>
                     </div>
                     <?php endif; ?>
 
-                    <!-- Área -->
+                    <!-- Mes -->
                     <div class="mb-3">
-                        <label class="form-label required">Área</label>
-                        <select class="form-select" id="modal-area" name="area" required>
-                            <option value="">Seleccionar área...</option>
+                        <label class="form-label required">Mes</label>
+                        <select class="form-select" id="modal-mes" name="mes" required>
+                            <option value="">Seleccionar mes...</option>
                             <?php
-                            // Para dept_admin, cargar sus áreas directamente
-                            if ($user['rol'] === 'dept_admin'):
-                                $areas = PermissionService::getAreasPermitidas($user, $user['departamento_id']);
-                                foreach ($areas as $area):
+                            $meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                            foreach ($meses as $num => $nombre):
+                                $mesNum = $num + 1;
                             ?>
-                                <option value="<?php echo $area['id']; ?>">
-                                    <?php echo htmlspecialchars($area['nombre']); ?>
-                                </option>
-                            <?php
-                                endforeach;
-                            endif;
-                            ?>
-                        </select>
-                    </div>
-
-                    <!-- Tipo de Reporte -->
-                    <div class="mb-3">
-                        <label class="form-label required">Tipo de Reporte</label>
-                        <select class="form-select" id="modal-tipo-reporte" name="tipo_reporte" required>
-                            <option value="mensual">Mensual</option>
-                            <option value="trimestral">Trimestral</option>
-                            <option value="semestral">Semestral</option>
-                            <option value="anual">Anual</option>
-                        </select>
-                    </div>
-
-                    <!-- Período (solo para mensual/trimestral/semestral) -->
-                    <div class="mb-3" id="campo-periodo">
-                        <label class="form-label required">Período</label>
-                        <select class="form-select" id="modal-periodo" name="periodo_id">
-                            <option value="">Seleccionar período...</option>
-                            <?php
-                            $periodoModel = new App\Models\Periodo();
-                            $periodos = $periodoModel->getAll();
-                            foreach ($periodos as $periodo):
-                            ?>
-                                <option value="<?php echo $periodo['id']; ?>">
-                                    <?php echo htmlspecialchars($periodo['nombre']); ?>
+                                <option value="<?php echo $mesNum; ?>" <?php echo (int)date('n') == $mesNum ? 'selected' : ''; ?>>
+                                    <?php echo $nombre; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -405,7 +354,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                     <div class="mb-3">
                         <label class="form-label required">Año</label>
                         <input type="number" class="form-control" id="modal-anio" name="anio"
-                               value="<?php echo date('Y'); ?>" min="2000" max="2100" required>
+                               value="<?php echo date('Y'); ?>" min="2020" max="2100" required>
                     </div>
                 </form>
             </div>
@@ -428,71 +377,26 @@ function eliminarReporte(id) {
     }
 }
 
-// Actualizar áreas al cambiar departamento
+// Actualizar lista al cambiar departamento en filtro
 <?php if ($user['rol'] === 'super_admin'): ?>
 document.getElementById('filtro-departamento')?.addEventListener('change', function() {
     document.querySelector('form').submit();
 });
-
-// En el modal: cargar áreas al seleccionar departamento
-document.getElementById('modal-departamento')?.addEventListener('change', function() {
-    const departamentoId = this.value;
-    const areaSelect = document.getElementById('modal-area');
-
-    if (!departamentoId) {
-        areaSelect.innerHTML = '<option value="">Seleccionar área...</option>';
-        return;
-    }
-
-    // Hacer petición AJAX para obtener áreas del departamento
-    fetch(`../api/get-areas-by-departamento.php?departamento_id=${departamentoId}`)
-        .then(response => response.json())
-        .then(data => {
-            areaSelect.innerHTML = '<option value="">Seleccionar área...</option>';
-            data.areas.forEach(area => {
-                const option = document.createElement('option');
-                option.value = area.id;
-                option.textContent = area.nombre;
-                areaSelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error al cargar áreas:', error);
-            alert('Error al cargar las áreas');
-        });
-});
 <?php endif; ?>
-
-// Mostrar/ocultar campo de período según tipo de reporte
-document.getElementById('modal-tipo-reporte')?.addEventListener('change', function() {
-    const tipo = this.value;
-    const campoPeriodo = document.getElementById('campo-periodo');
-    const selectPeriodo = document.getElementById('modal-periodo');
-
-    if (tipo === 'anual') {
-        campoPeriodo.style.display = 'none';
-        selectPeriodo.required = false;
-        selectPeriodo.value = '';
-    } else {
-        campoPeriodo.style.display = 'block';
-        selectPeriodo.required = true;
-    }
-});
 
 // Continuar al editor
 document.getElementById('btn-continuar-reporte')?.addEventListener('click', function() {
-    const areaId = document.getElementById('modal-area').value;
-    const tipoReporte = document.getElementById('modal-tipo-reporte').value;
-    const periodoId = document.getElementById('modal-periodo').value;
+    const departamentoId = document.getElementById('modal-departamento').value;
+    const mes = document.getElementById('modal-mes').value;
     const anio = document.getElementById('modal-anio').value;
 
-    if (!areaId) {
-        alert('Por favor selecciona un área');
+    if (!departamentoId) {
+        alert('Por favor selecciona un departamento');
         return;
     }
 
-    if (tipoReporte !== 'anual' && !periodoId) {
-        alert('Por favor selecciona un período');
+    if (!mes) {
+        alert('Por favor selecciona un mes');
         return;
     }
 
@@ -501,13 +405,8 @@ document.getElementById('btn-continuar-reporte')?.addEventListener('click', func
         return;
     }
 
-    // Redirigir al editor con todos los parámetros
-    let url = `reportes-editor.php?area=${areaId}&tipo_reporte=${tipoReporte}&anio=${anio}`;
-    if (periodoId) {
-        url += `&periodo_id=${periodoId}`;
-    }
-
-    window.location.href = url;
+    // Redirigir al editor con los parámetros
+    window.location.href = `reportes-editor.php?departamento_id=${departamentoId}&mes=${mes}&anio=${anio}`;
 });
 </script>
 
