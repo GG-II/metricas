@@ -106,27 +106,27 @@ $pageTitle = $reporte['titulo'];
 
         .reporte-portada {
             text-align: center;
-            padding: 2.5rem 1.5rem;
+            padding: 1.75rem 1.25rem;
             background: #1e40af;
             color: white;
             border-radius: 4px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .portada-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
+            margin: 0 auto 0.75rem;
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .portada-icon i {
-            font-size: 2rem;
+            font-size: 1.75rem;
             color: white;
         }
 
@@ -135,28 +135,35 @@ $pageTitle = $reporte['titulo'];
         .reporte-portada h4,
         .reporte-portada p {
             color: white;
+            line-height: 1.3;
         }
 
         .reporte-portada h1 {
-            font-size: 1.75rem;
-            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
         .reporte-portada h3 {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
         }
 
         .reporte-portada h4 {
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .reporte-section {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .reporte-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
         }
 
         .area-section {
-            margin-bottom: 1.5rem;
-            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            padding: 1rem;
             background: #f8fafc;
             border-radius: 4px;
             border-left: 4px solid #1e40af;
@@ -170,8 +177,8 @@ $pageTitle = $reporte['titulo'];
         .area-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
             border-bottom: 1px solid #e2e8f0;
         }
 
@@ -179,22 +186,34 @@ $pageTitle = $reporte['titulo'];
             border-bottom-color: #334155;
         }
 
+        .area-header h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            line-height: 1.2;
+        }
+
+        .area-header p {
+            font-size: 0.85rem;
+            margin-bottom: 0;
+            line-height: 1.3;
+        }
+
         .area-icon {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
+            margin-right: 0.65rem;
+            font-size: 1.1rem;
             color: white;
             flex-shrink: 0;
         }
 
         .grafico-container {
-            margin: 1.25rem 0;
-            padding: 1rem;
+            margin: 0.75rem 0;
+            padding: 0.85rem;
             background: white;
             border-radius: 4px;
             border: 1px solid #e2e8f0;
@@ -206,9 +225,10 @@ $pageTitle = $reporte['titulo'];
         }
 
         .grafico-container h5 {
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
             color: #334155;
+            line-height: 1.2;
         }
 
         [data-bs-theme="dark"] .grafico-container h5 {
@@ -216,9 +236,8 @@ $pageTitle = $reporte['titulo'];
         }
 
         .resumen-ejecutivo {
-            line-height: 1.6;
+            line-height: 1.4;
             font-size: 0.95rem;
-            white-space: pre-wrap;
             background: #f8fafc;
             padding: 1.25rem;
             border-radius: 4px;
@@ -227,6 +246,14 @@ $pageTitle = $reporte['titulo'];
 
         [data-bs-theme="dark"] .resumen-ejecutivo {
             background: #0f172a;
+        }
+
+        .resumen-ejecutivo p {
+            margin-bottom: 0.5rem;
+        }
+
+        .resumen-ejecutivo p:last-child {
+            margin-bottom: 0;
         }
 
         .badge {
@@ -303,7 +330,22 @@ $pageTitle = $reporte['titulo'];
                 <div class="reporte-section">
                     <h2 class="mb-4">Resumen Ejecutivo</h2>
                     <div class="resumen-ejecutivo">
-                        <?php echo nl2br(htmlspecialchars($reporte['resumen_ejecutivo'])); ?>
+                        <?php
+                        // Procesar texto: colapsar líneas vacías múltiples a una sola
+                        $texto = $reporte['resumen_ejecutivo'];
+                        // Reemplazar 3+ saltos de línea consecutivos por 2
+                        $texto = preg_replace('/\n{3,}/', "\n\n", $texto);
+                        // Dividir por doble salto de línea para crear párrafos
+                        $parrafos = explode("\n\n", $texto);
+                        foreach ($parrafos as $parrafo) {
+                            $parrafo = trim($parrafo);
+                            if (!empty($parrafo)) {
+                                // Reemplazar saltos simples por espacios dentro del párrafo
+                                $parrafo = str_replace("\n", " ", $parrafo);
+                                echo '<p>' . htmlspecialchars($parrafo) . '</p>';
+                            }
+                        }
+                        ?>
                     </div>
                 </div>
                 <?php endif; ?>
