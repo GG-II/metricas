@@ -6,6 +6,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Middleware\AuthMiddleware;
 use App\Services\PermissionService;
 use App\Models\Reporte;
+use App\Models\Periodo;
+use App\Models\ValorMetrica;
 
 AuthMiddleware::handle();
 
@@ -33,6 +35,16 @@ if ($user['rol'] !== 'super_admin' &&
 
 $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+// Buscar el período correspondiente al mes/año del reporte
+$periodoModel = new Periodo();
+$periodo = $periodoModel->findByEjercicioAndPeriodo($reporte['anio'], $reporte['mes']);
+
+// Helper para obtener datos de métricas (igual que en dashboard)
+function obtenerDatosMetrica($metrica_id, $periodo_id) {
+    $valorMetricaModel = new ValorMetrica();
+    return $valorMetricaModel->getByMetricaYPeriodo($metrica_id, $periodo_id);
+}
 
 $pageTitle = $reporte['titulo'];
 ?>
@@ -252,7 +264,13 @@ $pageTitle = $reporte['titulo'];
 
                 <!-- SECCIONES POR ÁREA -->
                 <div class="reporte-section">
-                    <h2 class="mb-4">Detalle por Área</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="mb-0">Detalle por Área</h2>
+                        <span class="badge bg-info-lt" style="font-size: 0.875rem;">
+                            <i class="ti ti-calendar me-1"></i>
+                            Datos al cierre de <?php echo $meses[$reporte['mes']]; ?> <?php echo $reporte['anio']; ?>
+                        </span>
+                    </div>
 
                     <?php if (empty($reporte['areas'])): ?>
                         <div class="alert alert-info">
@@ -291,8 +309,14 @@ $pageTitle = $reporte['titulo'];
                                         $chartComponent = require $graficoPath;
                                         $config = json_decode($grafico['configuracion'], true);
 
+                                        // Obtener datos de la métrica si el gráfico la usa (igual que dashboard)
+                                        $metrica_data = null;
+                                        if (isset($config['metrica_id']) && $periodo) {
+                                            $metrica_data = obtenerDatosMetrica($config['metrica_id'], $periodo['id']);
+                                        }
+
                                         if (isset($chartComponent['render']) && is_callable($chartComponent['render'])) {
-                                            echo $chartComponent['render']($config, null, $area['color'] ?? '#3b82f6');
+                                            echo $chartComponent['render']($config, $metrica_data, $area['color'] ?? '#3b82f6');
                                         } else {
                                             echo '<div class="alert alert-warning">Gráfico no disponible</div>';
                                         }
