@@ -4,9 +4,6 @@
     <!-- Toast Notifications -->
     <script src="<?php echo baseUrl('/assets/js/toast-notifications.js'); ?>"></script>
 
-    <!-- Chart Helpers -->
-    <script src="<?php echo baseUrl('/assets/js/chart-helpers.js'); ?>"></script>
-
     <!-- Custom JS -->
     <script>
         // Flash message auto-hide

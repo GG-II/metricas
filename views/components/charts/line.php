@@ -234,7 +234,7 @@ JS,
                     theme: 'dark',
                     y: {
                         formatter: function (val) {
-                            return formatChartValue(val, '<?php echo htmlspecialchars($metrica_data['unidad'] ?? ''); ?>', 0);
+                            return val.toFixed(0) + ' <?php echo htmlspecialchars($metrica_data['unidad'] ?? ''); ?>';
                         }
                     }
                 }

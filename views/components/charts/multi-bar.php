@@ -247,7 +247,7 @@ JS,
                 },
                 dataLabels: {
                     enabled: <?php echo $mostrar_valores ? 'true' : 'false'; ?>,
-                    formatter: val => formatNumber(val, 0),
+                    formatter: val => val.toFixed(0),
                     offsetY: -20,
                     style: { fontSize: '10px', colors: ['#94a3b8'] }
                 },

@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
             yaxis: {
                 labels: {
                     formatter: function(val) {
-                        return formatPercentage(val, 0);
+                        return val.toFixed(0) + '%';
                     }
                 }
             },
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             total += s.data[dataPointIndex];
                         });
                         const percentage = ((val / total) * 100).toFixed(1);
-                        return formatNumber(val, 0) + ' (' + percentage + '%)';
+                        return val + ' (' + percentage + '%)';
                     }
                 }
             },
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dataLabels: {
                 enabled: true,
                 formatter: function(val) {
-                    return val > 5 ? formatPercentage(val, 0) : '';
+                    return val > 5 ? val.toFixed(0) + '%' : '';
                 },
                 style: {
                     colors: ['#fff']
