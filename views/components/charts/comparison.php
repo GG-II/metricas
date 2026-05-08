@@ -153,11 +153,28 @@ JS,
         $color_2 = $config['color_2'] ?? '#10b981';
         $altura = (int)($config['altura'] ?? 350);
         $mostrar_valores = $config['mostrar_valores'] ?? true;
-        
+
+        // Obtener período límite si viene de un reporte
+        $periodo_limite = $config['_periodo_limite'] ?? null;
+
         // Obtener históricos
         $historico_1 = $valorMetricaModel->getHistorico($metrica_1_id, $periodos);
         $historico_2 = $valorMetricaModel->getHistorico($metrica_2_id, $periodos);
-        
+
+        // Filtrar datos hasta el período límite del reporte
+        if ($periodo_limite) {
+            $historico_1 = array_filter($historico_1, function($dato) use ($periodo_limite) {
+                if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
+                if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
+                return (int)$dato['periodo'] <= $periodo_limite['mes'];
+            });
+            $historico_2 = array_filter($historico_2, function($dato) use ($periodo_limite) {
+                if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
+                if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
+                return (int)$dato['periodo'] <= $periodo_limite['mes'];
+            });
+        }
+
         if (empty($historico_1) && empty($historico_2)) {
             return '<div class="alert alert-info m-3">No hay datos históricos disponibles</div>';
         }

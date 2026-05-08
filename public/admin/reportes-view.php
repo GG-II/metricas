@@ -357,6 +357,14 @@ $pageTitle = $reporte['titulo'];
                                         $chartComponent = require $graficoPath;
                                         $config = json_decode($grafico['configuracion'], true);
 
+                                        // IMPORTANTE: Pasar período límite del reporte a los gráficos
+                                        // para que no muestren datos posteriores al mes del reporte
+                                        $config['_periodo_limite'] = [
+                                            'anio' => $reporte['anio'],
+                                            'mes' => $reporte['mes'],
+                                            'periodo_id' => $periodo ? $periodo['id'] : null
+                                        ];
+
                                         // Obtener datos de la métrica si el gráfico la usa (igual que dashboard)
                                         $metrica_data = null;
                                         if (isset($config['metrica_id']) && $periodo) {

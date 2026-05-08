@@ -117,12 +117,24 @@ JS,
             9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dic'
         ];
 
+        // Obtener período límite si viene de un reporte
+        $periodo_limite = $config['_periodo_limite'] ?? null;
+
         foreach ($config['metricas'] as $idx => $metrica_config) {
             $metrica_id = is_array($metrica_config) ? $metrica_config['id'] : $metrica_config;
             $metrica = $metricaModel->find($metrica_id);
             if (!$metrica) continue;
 
             $historico = $valorMetricaModel->getHistorico($metrica_id, $periodos);
+
+            // Filtrar datos hasta el período límite del reporte
+            if ($periodo_limite) {
+                $historico = array_filter($historico, function($dato) use ($periodo_limite) {
+                    if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
+                    if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
+                    return (int)$dato['periodo'] <= $periodo_limite['mes'];
+                });
+            }
 
             if (empty($categorias)) {
                 foreach ($historico as $dato) {
