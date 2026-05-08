@@ -131,7 +131,19 @@ JS,
         
         // Obtener histórico
         $valorMetricaModel = new \App\Models\ValorMetrica();
+        // Obtener período límite si viene de un reporte
+        $periodo_limite = $config['_periodo_limite'] ?? null;
+
         $historico = $valorMetricaModel->getHistorico($metrica_id, $periodos);
+        
+        // Filtrar datos hasta el período límite del reporte
+        if ($periodo_limite) {
+            $historico = array_values(array_filter($historico, function($dato) use ($periodo_limite) {
+                if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
+                if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
+                return (int)$dato['periodo'] <= $periodo_limite['mes'];
+            }));
+        }
         
         if (empty($historico)) {
             return '<div class="alert alert-info m-3">No hay datos históricos disponibles</div>';

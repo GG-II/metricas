@@ -176,18 +176,30 @@ JS,
         $periodos = (int)($config['periodos'] ?? 6);
         $altura = (int)($config['altura'] ?? 400);
         $mostrar_valores = $config['mostrar_valores'] ?? true;
-        
+
+        // Obtener período límite si viene de un reporte
+        $periodo_limite = $config['_periodo_limite'] ?? null;
+
         $series = [];
         $categorias = [];
         $colores = [];
-        
+
         foreach ($config['metricas'] as $metrica_config) {
             $metrica_id = $metrica_config['id'];
             $color = $metrica_config['color'];
-            
+
             $metrica_info = $metricaModel->find($metrica_id);
             $historico = $valorMetricaModel->getHistorico($metrica_id, $periodos);
-            
+
+            // Filtrar datos hasta el período límite del reporte
+            if ($periodo_limite) {
+                $historico = array_values(array_filter($historico, function($dato) use ($periodo_limite) {
+                    if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
+                    if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
+                    return (int)$dato['periodo'] <= $periodo_limite['mes'];
+                }));
+            }
+
             if (empty($historico)) continue;
             
             $valores = [];

@@ -125,6 +125,9 @@ JS,
         $suave = $config['suave'] ?? true;
         $curve = $suave ? 'smooth' : 'straight';
 
+        // Obtener período límite si viene de un reporte
+        $periodo_limite = $config['_periodo_limite'] ?? null;
+
         $colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
         $series = [];
@@ -142,6 +145,15 @@ JS,
             if (!$metrica) continue;
 
             $historico = $valorMetricaModel->getHistorico($metrica_id, $periodos);
+
+            // Filtrar datos hasta el período límite del reporte
+            if ($periodo_limite) {
+                $historico = array_values(array_filter($historico, function($dato) use ($periodo_limite) {
+                    if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
+                    if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
+                    return (int)$dato['periodo'] <= $periodo_limite['mes'];
+                }));
+            }
 
             if (empty($categorias)) {
                 foreach ($historico as $dato) {
