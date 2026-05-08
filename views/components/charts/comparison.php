@@ -163,16 +163,16 @@ JS,
 
         // Filtrar datos hasta el período límite del reporte
         if ($periodo_limite) {
-            $historico_1 = array_filter($historico_1, function($dato) use ($periodo_limite) {
+            $historico_1 = array_values(array_filter($historico_1, function($dato) use ($periodo_limite) {
                 if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
                 if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
                 return (int)$dato['periodo'] <= $periodo_limite['mes'];
-            });
-            $historico_2 = array_filter($historico_2, function($dato) use ($periodo_limite) {
+            }));
+            $historico_2 = array_values(array_filter($historico_2, function($dato) use ($periodo_limite) {
                 if ($dato['ejercicio'] < $periodo_limite['anio']) return true;
                 if ($dato['ejercicio'] > $periodo_limite['anio']) return false;
                 return (int)$dato['periodo'] <= $periodo_limite['mes'];
-            });
+            }));
         }
 
         if (empty($historico_1) && empty($historico_2)) {
