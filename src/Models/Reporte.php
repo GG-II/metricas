@@ -131,10 +131,10 @@ class Reporte extends Model
         // Para cada área, obtener sus gráficos configurados
         foreach ($areas as &$area) {
             $stmtGraficos = $this->db->prepare("
-                SELECT id, titulo, tipo, configuracion, ancho_columnas, altura
+                SELECT id, titulo, tipo, configuracion, grid_w, grid_h, orden
                 FROM configuracion_graficos
                 WHERE area_id = ? AND activo = 1
-                ORDER BY posicion ASC
+                ORDER BY orden ASC
             ");
             $stmtGraficos->execute([$area['id']]);
             $area['graficos'] = $stmtGraficos->fetchAll(PDO::FETCH_ASSOC);
