@@ -66,15 +66,38 @@ $pageTitle = $reporte['titulo'];
     <style>
         @media print {
             .no-print { display: none !important; }
-            .page-wrapper { margin: 0; padding: 0; }
+            .page-wrapper { margin: 0 !important; padding: 0 !important; }
+            .reporte-container {
+                box-shadow: none !important;
+                padding: 1cm !important;
+                margin: 0 !important;
+            }
+            .reporte-portada {
+                padding: 1.5cm 1cm !important;
+                margin-bottom: 1cm !important;
+                page-break-after: avoid;
+            }
+            .area-section {
+                padding: 0.8cm !important;
+                margin-bottom: 0.8cm !important;
+                page-break-inside: avoid;
+            }
+            .grafico-container {
+                padding: 0.5cm !important;
+                margin: 0.5cm 0 !important;
+                page-break-inside: avoid;
+            }
+            h1 { font-size: 1.8rem !important; }
+            h2 { font-size: 1.4rem !important; }
+            h3 { font-size: 1.2rem !important; }
         }
 
         .reporte-container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 3rem;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
 
         [data-bs-theme="dark"] .reporte-container {
@@ -83,29 +106,27 @@ $pageTitle = $reporte['titulo'];
 
         .reporte-portada {
             text-align: center;
-            padding: 4rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2.5rem 1.5rem;
+            background: #1e40af;
             color: white;
-            border-radius: 12px;
-            margin-bottom: 3rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            border-radius: 4px;
+            margin-bottom: 2rem;
         }
 
         .portada-icon {
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 2rem;
-            backdrop-filter: blur(10px);
+            margin: 0 auto 1rem;
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .portada-icon i {
-            font-size: 3rem;
+            font-size: 2rem;
             color: white;
         }
 
@@ -116,30 +137,42 @@ $pageTitle = $reporte['titulo'];
             color: white;
         }
 
+        .reporte-portada h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .reporte-portada h3 {
+            font-size: 1.25rem;
+        }
+
+        .reporte-portada h4 {
+            font-size: 1.1rem;
+        }
+
         .reporte-section {
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         .area-section {
-            margin-bottom: 2.5rem;
-            padding: 2rem;
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
             background: #f8fafc;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 4px;
+            border-left: 4px solid #1e40af;
         }
 
         [data-bs-theme="dark"] .area-section {
             background: #0f172a;
-            border-color: #334155;
+            border-color: #3b82f6;
         }
 
         .area-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         [data-bs-theme="dark"] .area-header {
@@ -147,23 +180,23 @@ $pageTitle = $reporte['titulo'];
         }
 
         .area-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 1rem;
-            font-size: 1.5rem;
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
             color: white;
             flex-shrink: 0;
         }
 
         .grafico-container {
-            margin: 2rem 0;
-            padding: 1.5rem;
+            margin: 1.25rem 0;
+            padding: 1rem;
             background: white;
-            border-radius: 8px;
+            border-radius: 4px;
             border: 1px solid #e2e8f0;
         }
 
@@ -172,18 +205,33 @@ $pageTitle = $reporte['titulo'];
             border-color: #334155;
         }
 
+        .grafico-container h5 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: #334155;
+        }
+
+        [data-bs-theme="dark"] .grafico-container h5 {
+            color: #cbd5e1;
+        }
+
         .resumen-ejecutivo {
-            line-height: 1.8;
-            font-size: 1.05rem;
+            line-height: 1.6;
+            font-size: 0.95rem;
             white-space: pre-wrap;
             background: #f8fafc;
-            padding: 2rem;
-            border-radius: 8px;
-            border-left: 4px solid #3b82f6;
+            padding: 1.25rem;
+            border-radius: 4px;
+            border-left: 3px solid #1e40af;
         }
 
         [data-bs-theme="dark"] .resumen-ejecutivo {
             background: #0f172a;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.35rem 0.75rem;
         }
     </style>
 </head>
@@ -225,16 +273,16 @@ $pageTitle = $reporte['titulo'];
                     <div class="portada-icon">
                         <i class="ti ti-<?php echo $reporte['departamento_icono'] ?? 'building'; ?>"></i>
                     </div>
-                    <h1 class="display-5 mb-3"><?php echo htmlspecialchars($reporte['titulo']); ?></h1>
+                    <h1 class="mb-2"><?php echo htmlspecialchars($reporte['titulo']); ?></h1>
                     <h3 class="mb-2"><?php echo htmlspecialchars($reporte['departamento_nombre']); ?></h3>
-                    <h4 class="mb-3">
+                    <h4 class="mb-2">
                         <?php echo $meses[$reporte['mes']]; ?> <?php echo $reporte['anio']; ?>
                     </h4>
                     <?php if ($reporte['descripcion']): ?>
-                    <p class="mt-3" style="font-size: 1.1rem; opacity: 0.9;"><?php echo htmlspecialchars($reporte['descripcion']); ?></p>
+                    <p class="mt-2 mb-0" style="font-size: 0.95rem; opacity: 0.9;"><?php echo htmlspecialchars($reporte['descripcion']); ?></p>
                     <?php endif; ?>
 
-                    <div class="mt-4 d-flex justify-content-center gap-3">
+                    <div class="mt-3 d-flex justify-content-center gap-2">
                         <?php
                         $estadoClass = [
                             'borrador' => 'bg-warning',
@@ -243,7 +291,7 @@ $pageTitle = $reporte['titulo'];
                             'archivado' => 'bg-secondary'
                         ];
                         ?>
-                        <span class="badge <?php echo $estadoClass[$reporte['estado']] ?? 'bg-secondary'; ?>" style="font-size: 0.95rem; padding: 0.6rem 1.2rem;">
+                        <span class="badge <?php echo $estadoClass[$reporte['estado']] ?? 'bg-secondary'; ?>">
                             <i class="ti ti-circle-check me-1"></i>
                             <?php echo ucfirst($reporte['estado']); ?>
                         </span>
