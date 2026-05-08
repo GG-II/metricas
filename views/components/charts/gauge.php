@@ -166,6 +166,10 @@ JS,
         
         <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Detectar tema actual
+            const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const valueColor = isDarkTheme ? '#fff' : '#1e293b';
+
             const options = {
                 series: [<?php echo number_format($porcentaje, 1); ?>],
                 chart: {
@@ -208,7 +212,7 @@ JS,
                                 show: <?php echo $mostrar_porcentaje ? 'true' : 'false'; ?>,
                                 fontSize: '36px',
                                 fontWeight: 700,
-                                color: '#fff',
+                                color: valueColor,
                                 offsetY: 10,
                                 formatter: function(val) {
                                     return val.toFixed(1) + '%';
@@ -248,9 +252,37 @@ JS,
             const chartEl = document.querySelector("#<?php echo $chart_id; ?>");
             const chart = new ApexCharts(chartEl, options);
             chart.render();
-            
+
+            // Observer para redimensionamiento
             const resizeObserver = new ResizeObserver(() => chart.updateOptions({}, true, true));
             resizeObserver.observe(chartEl.closest('.grid-stack-item'));
+
+            // Observer para cambio de tema
+            const themeObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'data-bs-theme') {
+                        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                        const newValueColor = isDark ? '#fff' : '#1e293b';
+
+                        chart.updateOptions({
+                            plotOptions: {
+                                radialBar: {
+                                    dataLabels: {
+                                        value: {
+                                            color: newValueColor
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            themeObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-bs-theme']
+            });
         });
         </script>
         

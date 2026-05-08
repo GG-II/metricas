@@ -153,6 +153,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('{$chart_id}');
         if (!container || container.hasAttribute('data-chart-rendered')) return;
 
+        // Detectar tema actual para contraste
+        const isDarkTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const valueColor = isDarkTheme ? '#fff' : '#1e293b';
+
         const options = {
             series: [{$cumplimiento_display}],
             chart: {
@@ -174,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         value: {
                             fontSize: '36px',
                             fontWeight: 600,
-                            color: '{$color_gauge}',
+                            color: valueColor,
                             formatter: function(val) {
                                 return val.toFixed(1) + '%';
                             }
@@ -189,6 +193,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const chart = new ApexCharts(container, options);
         chart.render();
         container.setAttribute('data-chart-rendered', 'true');
+
+        // Observer para cambio de tema
+        const themeObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'data-bs-theme') {
+                    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                    const newValueColor = isDark ? '#fff' : '#1e293b';
+
+                    chart.updateOptions({
+                        plotOptions: {
+                            radialBar: {
+                                dataLabels: {
+                                    value: {
+                                        color: newValueColor
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-bs-theme']
+        });
     }, 200);
 });
 </script>
