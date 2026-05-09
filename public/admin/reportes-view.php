@@ -236,24 +236,17 @@ $pageTitle = $reporte['titulo'];
         }
 
         .resumen-ejecutivo {
-            line-height: 1.4;
+            line-height: 1.6;
             font-size: 0.95rem;
             background: #f8fafc;
             padding: 1.25rem;
             border-radius: 4px;
             border-left: 3px solid #1e40af;
+            white-space: pre-line;
         }
 
         [data-bs-theme="dark"] .resumen-ejecutivo {
             background: #0f172a;
-        }
-
-        .resumen-ejecutivo p {
-            margin-bottom: 0.5rem;
-        }
-
-        .resumen-ejecutivo p:last-child {
-            margin-bottom: 0;
         }
 
         .badge {
@@ -331,20 +324,12 @@ $pageTitle = $reporte['titulo'];
                     <h2 class="mb-4">Resumen Ejecutivo</h2>
                     <div class="resumen-ejecutivo">
                         <?php
-                        // Procesar texto: colapsar líneas vacías múltiples a una sola
+                        // Preservar saltos de línea pero limitar exceso de espacios en blanco
                         $texto = $reporte['resumen_ejecutivo'];
-                        // Reemplazar 3+ saltos de línea consecutivos por 2
+                        // Colapsar 3+ saltos de línea a solo 2 (máximo un espacio en blanco visible)
                         $texto = preg_replace('/\n{3,}/', "\n\n", $texto);
-                        // Dividir por doble salto de línea para crear párrafos
-                        $parrafos = explode("\n\n", $texto);
-                        foreach ($parrafos as $parrafo) {
-                            $parrafo = trim($parrafo);
-                            if (!empty($parrafo)) {
-                                // Reemplazar saltos simples por espacios dentro del párrafo
-                                $parrafo = str_replace("\n", " ", $parrafo);
-                                echo '<p>' . htmlspecialchars($parrafo) . '</p>';
-                            }
-                        }
+                        // Mostrar con formato preservado
+                        echo htmlspecialchars($texto);
                         ?>
                     </div>
                 </div>
