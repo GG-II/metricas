@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle ?? 'Sistema de Métricas'; ?></title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="<?php echo baseUrl('/assets/favicon/favicon.svg'); ?>">
+    <link rel="icon" type="image/png" sizes="96x96" href="<?php echo baseUrl('/assets/favicon/favicon-96x96.png'); ?>">
+    <link rel="shortcut icon" href="<?php echo baseUrl('/assets/favicon/favicon.ico'); ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo baseUrl('/assets/favicon/apple-touch-icon.png'); ?>">
+    <link rel="manifest" href="<?php echo baseUrl('/assets/favicon/site.webmanifest'); ?>">
+    <meta name="theme-color" content="#1e40af">
+
     <!-- Tabler CSS -->
     <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
