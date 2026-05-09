@@ -26,8 +26,16 @@ try {
         throw new Exception('Reporte no encontrado');
     }
 
-    // Verificar permisos
-    if (!PermissionService::canEditArea($user, $reporte['area_id'])) {
+    // Verificar permisos (los reportes son por departamento, no por área)
+    $canDelete = false;
+
+    if ($user['rol'] === 'super_admin') {
+        $canDelete = true;
+    } elseif ($user['rol'] === 'dept_admin' && $user['departamento_id'] == $reporte['departamento_id']) {
+        $canDelete = true;
+    }
+
+    if (!$canDelete) {
         throw new Exception('No tienes permiso para eliminar este reporte');
     }
 

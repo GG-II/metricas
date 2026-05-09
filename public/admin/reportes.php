@@ -69,6 +69,39 @@ require_once __DIR__ . '/../../views/layouts/header.php';
     <div class="page-body">
         <div class="container-xl">
 
+            <!-- Mensajes de éxito/error -->
+            <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <div class="d-flex">
+                    <div>
+                        <i class="ti ti-check icon alert-icon"></i>
+                    </div>
+                    <div>
+                        <h4 class="alert-title">¡Éxito!</h4>
+                        <div class="text-muted"><?php echo htmlspecialchars($_SESSION['success_message']); ?></div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="d-flex">
+                    <div>
+                        <i class="ti ti-alert-circle icon alert-icon"></i>
+                    </div>
+                    <div>
+                        <h4 class="alert-title">Error</h4>
+                        <div class="text-muted"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['error_message']); ?>
+            <?php endif; ?>
+
             <!-- Header -->
             <div class="page-header mb-4">
                 <div class="row align-items-center">
@@ -273,7 +306,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                                             <?php if ($user['rol'] === 'super_admin' ||
                                                      ($user['rol'] === 'dept_admin' && $user['departamento_id'] == $reporte['departamento_id'])): ?>
                                             <button class="btn btn-sm btn-danger"
-                                                    onclick="eliminarReporte(<?php echo $reporte['id']; ?>)"
+                                                    onclick="eliminarReporte(<?php echo $reporte['id']; ?>, '<?php echo addslashes(htmlspecialchars($reporte['titulo'])); ?>')"
                                                     title="Eliminar">
                                                 <i class="ti ti-trash"></i>
                                             </button>
@@ -371,8 +404,16 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
 <script>
 // Eliminar reporte
-function eliminarReporte(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar este reporte? Esta acción no se puede deshacer.')) {
+function eliminarReporte(id, titulo) {
+    const mensaje = '¿Estás seguro de que deseas eliminar este reporte?\n\n' +
+                   '📄 Reporte: "' + titulo + '"\n\n' +
+                   '⚠️ Esta acción no se puede deshacer.\n' +
+                   '❌ Se perderán todos los datos del reporte.';
+
+    if (confirm(mensaje)) {
+        // Mostrar indicador de carga
+        document.body.style.cursor = 'wait';
+
         window.location.href = 'reportes-delete.php?id=' + id;
     }
 }
