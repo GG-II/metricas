@@ -6,8 +6,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Middleware\AuthMiddleware;
 use App\Models\Reporte;
 use App\Models\Periodo;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 
 AuthMiddleware::handle();
 
@@ -40,265 +38,212 @@ $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
 $periodoModel = new Periodo();
 $periodo = $periodoModel->findByEjercicioAndPeriodo($reporte['anio'], $reporte['mes']);
 
-// Configurar Dompdf
-$options = new Options();
-$options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true);
-$options->set('defaultFont', 'DejaVu Sans');
-$options->set('defaultMediaType', 'print');
-$options->set('isFontSubsettingEnabled', true);
+// Crear PDF personalizado con footer
+class ReportePDF extends TCPDF {
+    private $reporte_data;
+    private $meses_array;
 
-$dompdf = new Dompdf($options);
+    public function setReporteData($data, $meses) {
+        $this->reporte_data = $data;
+        $this->meses_array = $meses;
+    }
 
-// Generar HTML para el PDF
-ob_start();
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title><?php echo htmlspecialchars($reporte['titulo']); ?></title>
-    <style>
-        @page {
-            margin: 2cm 1.5cm;
-            size: letter;
-        }
+    public function Footer() {
+        $this->SetY(-15);
+        $this->SetFont('helvetica', '', 8);
+        $this->SetTextColor(100, 116, 139);
 
-        body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 10pt;
-            line-height: 1.5;
-            color: #1a1a1a;
-        }
+        $footer_text = 'Generado por: ' . ($this->reporte_data['autor_nombre'] ?? 'N/A') . ' | ';
+        $footer_text .= 'Fecha: ' . date('d/m/Y H:i', strtotime($this->reporte_data['created_at'])) . ' | ';
+        $footer_text .= 'Página ' . $this->getAliasNumPage() . ' de ' . $this->getAliasNbPages();
 
-        .portada {
-            text-align: center;
-            padding: 3cm 2cm;
-            background: #1e40af;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 2cm;
-        }
+        $this->Cell(0, 10, $footer_text, 0, 0, 'C');
+    }
+}
 
-        .portada-icon {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1cm;
-            border: 3px solid rgba(255, 255, 255, 0.4);
-            font-size: 32pt;
-        }
+// Crear instancia de PDF
+$pdf = new ReportePDF('P', 'mm', 'LETTER', true, 'UTF-8', false);
+$pdf->setReporteData($reporte, $meses);
 
-        .portada h1 {
-            font-size: 18pt;
-            margin: 0 0 0.5cm 0;
-            font-weight: bold;
-            color: white;
-        }
+// Configurar información del documento
+$pdf->SetCreator('Sistema de Métricas');
+$pdf->SetAuthor($reporte['autor_nombre'] ?? 'Sistema');
+$pdf->SetTitle($reporte['titulo']);
+$pdf->SetSubject($reporte['descripcion'] ?? '');
 
-        .portada h2 {
-            font-size: 14pt;
-            margin: 0 0 0.3cm 0;
-            font-weight: normal;
-            color: white;
-        }
+// Remover header por defecto
+$pdf->setPrintHeader(false);
 
-        .portada h3 {
-            font-size: 12pt;
-            margin: 0 0 0.5cm 0;
-            color: white;
-        }
+// Configurar márgenes
+$pdf->SetMargins(15, 15, 15);
+$pdf->SetAutoPageBreak(TRUE, 20);
 
-        .portada .descripcion {
-            font-size: 9pt;
-            opacity: 0.9;
-            margin-top: 0.5cm;
-        }
+// Configurar fuente
+$pdf->SetFont('helvetica', '', 10);
 
-        .badge {
-            display: inline-block;
-            padding: 0.3cm 0.6cm;
-            background: rgba(255, 255, 255, 0.25);
-            color: white;
-            border-radius: 4px;
-            font-size: 9pt;
-            font-weight: bold;
-            margin-top: 0.5cm;
-        }
+// ==================== PÁGINA 1: PORTADA ====================
+$pdf->AddPage();
 
-        h2 {
-            font-size: 14pt;
-            margin: 1.5cm 0 0.5cm 0;
-            color: #1e40af;
-            border-bottom: 2px solid #1e40af;
-            padding-bottom: 0.2cm;
-        }
+// Fondo azul para portada
+$pdf->SetFillColor(30, 64, 175);
+$pdf->Rect(0, 0, 216, 100, 'F');
 
-        h3 {
-            font-size: 12pt;
-            margin: 1cm 0 0.3cm 0;
-            color: #334155;
-        }
+// Icono (círculo decorativo)
+$pdf->SetFillColor(255, 255, 255, 30);
+$pdf->Circle(108, 30, 15, 0, 360, 'F');
+$pdf->SetTextColor(255, 255, 255);
+$pdf->SetFont('helvetica', 'B', 20);
+$pdf->SetXY(15, 24);
+$pdf->Cell(0, 10, 'REPORTE', 0, 1, 'C');
 
-        .resumen-ejecutivo {
-            background: #f8fafc;
-            padding: 1cm;
-            border-left: 4px solid #1e40af;
-            border-radius: 4px;
-            margin-bottom: 1cm;
-            white-space: pre-line;
-            line-height: 1.6;
-        }
+// Título principal
+$pdf->SetFont('helvetica', 'B', 18);
+$pdf->SetXY(15, 45);
+$pdf->MultiCell(0, 8, $reporte['titulo'], 0, 'C', 0, 1, '', '', true, 0, false, true, 0, 'M');
 
-        .area-section {
-            margin-bottom: 1.5cm;
-            padding: 0.8cm;
-            background: #f8fafc;
-            border-left: 4px solid #3b82f6;
-            border-radius: 4px;
-            page-break-inside: avoid;
-        }
+// Departamento
+$pdf->SetFont('helvetica', '', 14);
+$pdf->SetXY(15, $pdf->GetY() + 2);
+$pdf->Cell(0, 8, $reporte['departamento_nombre'], 0, 1, 'C');
 
-        .area-header {
-            margin-bottom: 0.5cm;
-            padding-bottom: 0.3cm;
-            border-bottom: 1px solid #cbd5e1;
-        }
+// Mes y Año
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 6, $meses[$reporte['mes']] . ' ' . $reporte['anio'], 0, 1, 'C');
 
-        .area-header h3 {
-            margin: 0;
-            font-size: 12pt;
-            color: #1e293b;
-        }
+// Descripción
+if (!empty($reporte['descripcion'])) {
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetXY(25, $pdf->GetY() + 5);
+    $pdf->MultiCell(166, 5, $reporte['descripcion'], 0, 'C', 0, 1, '', '', true, 0, false, true, 0, 'M');
+}
 
-        .grafico-placeholder {
-            padding: 1cm;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            margin: 0.5cm 0;
-            text-align: center;
-            color: #64748b;
-            font-style: italic;
-        }
+// Badge de estado
+$pdf->SetFont('helvetica', 'B', 9);
+$pdf->SetFillColor(255, 255, 255, 60);
+$yPos = 92;
+$pdf->SetXY(80, $yPos);
+$pdf->Cell(40, 6, strtoupper($reporte['estado']), 0, 0, 'C', true);
 
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 1cm;
-            text-align: center;
-            font-size: 8pt;
-            color: #64748b;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 0.2cm;
-        }
+// Resetear color
+$pdf->SetTextColor(0, 0, 0);
 
-        .page-number:before {
-            content: "Página " counter(page);
-        }
-    </style>
-</head>
-<body>
+// ==================== RESUMEN EJECUTIVO ====================
+if (!empty($reporte['resumen_ejecutivo'])) {
+    $pdf->AddPage();
 
-<!-- PORTADA -->
-<div class="portada">
-    <div class="portada-icon">📊</div>
-    <h1><?php echo htmlspecialchars($reporte['titulo']); ?></h1>
-    <h2><?php echo htmlspecialchars($reporte['departamento_nombre']); ?></h2>
-    <h3><?php echo $meses[$reporte['mes']] . ' ' . $reporte['anio']; ?></h3>
-    <?php if ($reporte['descripcion']): ?>
-    <p class="descripcion"><?php echo htmlspecialchars($reporte['descripcion']); ?></p>
-    <?php endif; ?>
-    <span class="badge"><?php echo ucfirst($reporte['estado']); ?></span>
-</div>
+    // Título
+    $pdf->SetFont('helvetica', 'B', 14);
+    $pdf->SetTextColor(30, 64, 175);
+    $pdf->Cell(0, 8, 'Resumen Ejecutivo', 0, 1, 'L');
+    $pdf->SetDrawColor(30, 64, 175);
+    $pdf->Line(15, $pdf->GetY(), 201, $pdf->GetY());
+    $pdf->Ln(5);
 
-<!-- RESUMEN EJECUTIVO -->
-<?php if (!empty($reporte['resumen_ejecutivo'])): ?>
-<h2>Resumen Ejecutivo</h2>
-<div class="resumen-ejecutivo"><?php
+    // Contenido
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetFillColor(248, 250, 252);
+
     $texto = $reporte['resumen_ejecutivo'];
     $texto = preg_replace('/\n{3,}/', "\n\n", $texto);
-    echo htmlspecialchars($texto);
-?></div>
-<?php endif; ?>
 
-<!-- DETALLE POR ÁREA -->
-<h2>Detalle por Área</h2>
-<p style="text-align: center; color: #64748b; font-size: 9pt; margin-bottom: 1cm;">
-    Datos al cierre de <?php echo $meses[$reporte['mes']] . ' ' . $reporte['anio']; ?>
-</p>
+    $pdf->MultiCell(0, 5, $texto, 0, 'L', true, 1, '', '', true, 0, false, true, 0, 'T');
+    $pdf->Ln(5);
+}
 
-<?php if (!empty($reporte['areas'])): ?>
-    <?php foreach ($reporte['areas'] as $area): ?>
-    <div class="area-section">
-        <div class="area-header">
-            <h3><?php echo htmlspecialchars($area['nombre']); ?></h3>
-            <?php if (!empty($area['descripcion'])): ?>
-            <p style="color: #64748b; font-size: 9pt; margin: 0.2cm 0 0 0;">
-                <?php echo htmlspecialchars($area['descripcion']); ?>
-            </p>
-            <?php endif; ?>
-        </div>
+// ==================== DETALLE POR ÁREA ====================
+$pdf->AddPage();
 
-        <?php if (!empty($area['graficos'])): ?>
-            <?php foreach ($area['graficos'] as $idx => $grafico): ?>
-            <div class="grafico-placeholder">
-                <strong><?php echo htmlspecialchars($grafico['titulo']); ?></strong><br>
-                <small>Gráfico interactivo - Consulte la versión web para visualización completa</small>
-            </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <p style="color: #64748b; font-style: italic;">No hay gráficos configurados para esta área</p>
-        <?php endif; ?>
-    </div>
-    <?php endforeach; ?>
-<?php else: ?>
-    <p style="text-align: center; color: #64748b; font-style: italic;">
-        No hay áreas configuradas para este departamento
-    </p>
-<?php endif; ?>
+$pdf->SetFont('helvetica', 'B', 14);
+$pdf->SetTextColor(30, 64, 175);
+$pdf->Cell(0, 8, 'Detalle por Área', 0, 1, 'L');
+$pdf->SetDrawColor(30, 64, 175);
+$pdf->Line(15, $pdf->GetY(), 201, $pdf->GetY());
+$pdf->Ln(3);
 
-<!-- PIE DE PÁGINA -->
-<div class="footer">
-    <div>
-        Generado por: <?php echo htmlspecialchars($reporte['autor_nombre'] ?? 'N/A'); ?> |
-        Fecha: <?php echo date('d/m/Y H:i', strtotime($reporte['created_at'])); ?> |
-        <span class="page-number"></span>
-    </div>
-</div>
+// Info del período
+$pdf->SetFont('helvetica', 'I', 9);
+$pdf->SetTextColor(100, 116, 139);
+$pdf->Cell(0, 5, 'Datos al cierre de ' . $meses[$reporte['mes']] . ' ' . $reporte['anio'], 0, 1, 'C');
+$pdf->Ln(5);
 
-</body>
-</html>
-<?php
-$html = ob_get_clean();
+$pdf->SetTextColor(0, 0, 0);
 
-// Cargar HTML en Dompdf
-$dompdf->loadHtml($html);
+if (!empty($reporte['areas'])) {
+    foreach ($reporte['areas'] as $area) {
+        // Verificar espacio
+        if ($pdf->GetY() > 240) {
+            $pdf->AddPage();
+        }
 
-// Configurar papel
-$dompdf->setPaper('letter', 'portrait');
+        $y_start = $pdf->GetY();
 
-// Renderizar PDF
-$dompdf->render();
+        // Nombre del área
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetTextColor(30, 41, 59);
+        $pdf->Cell(0, 7, $area['nombre'], 0, 1, 'L');
 
-// Nombre del archivo
+        // Descripción
+        if (!empty($area['descripcion'])) {
+            $pdf->SetFont('helvetica', '', 9);
+            $pdf->SetTextColor(100, 116, 139);
+            $pdf->MultiCell(0, 4, $area['descripcion'], 0, 'L', false, 1);
+        }
+
+        $pdf->Ln(2);
+        $pdf->SetDrawColor(203, 213, 225);
+        $pdf->Line(15, $pdf->GetY(), 201, $pdf->GetY());
+        $pdf->Ln(3);
+
+        $pdf->SetTextColor(0, 0, 0);
+
+        // Gráficos
+        if (!empty($area['graficos'])) {
+            foreach ($area['graficos'] as $grafico) {
+                if ($pdf->GetY() > 250) {
+                    $pdf->AddPage();
+                }
+
+                $pdf->SetFont('helvetica', 'B', 10);
+                $pdf->SetX(20);
+                $pdf->Cell(0, 6, $grafico['titulo'], 0, 1, 'L');
+
+                $pdf->SetFont('helvetica', 'I', 9);
+                $pdf->SetTextColor(100, 116, 139);
+                $pdf->SetX(20);
+                $pdf->MultiCell(0, 5, '[Gráfico interactivo - Use "Imprimir" desde la web para visualización completa]', 0, 'C', false, 1);
+                $pdf->Ln(2);
+                $pdf->SetTextColor(0, 0, 0);
+            }
+        } else {
+            $pdf->SetFont('helvetica', 'I', 9);
+            $pdf->SetTextColor(100, 116, 139);
+            $pdf->SetX(20);
+            $pdf->Cell(0, 5, 'No hay gráficos configurados', 0, 1, 'L');
+        }
+
+        // Borde del área
+        $y_end = $pdf->GetY();
+        $pdf->SetDrawColor(59, 130, 246);
+        $pdf->Rect(15, $y_start, 186, $y_end - $y_start);
+
+        $pdf->Ln(8);
+        $pdf->SetTextColor(0, 0, 0);
+    }
+} else {
+    $pdf->SetFont('helvetica', 'I', 10);
+    $pdf->SetTextColor(100, 116, 139);
+    $pdf->Cell(0, 10, 'No hay áreas configuradas', 0, 1, 'C');
+}
+
+// Generar nombre del archivo
 $filename = preg_replace('/[^A-Za-z0-9-]+/', '-', $reporte['titulo']);
 $filename = strtolower(trim($filename, '-'));
 $filename = substr($filename, 0, 50);
 $filename = $filename . '_' . $reporte['anio'] . '_' . $reporte['mes'] . '.pdf';
 
-// Enviar al navegador
-$dompdf->stream($filename, [
-    'Attachment' => true, // true = descargar, false = ver en navegador
-    'compress' => true
-]);
+// Salida
+$pdf->Output($filename, 'D');
 
 exit;
 ?>
