@@ -111,6 +111,9 @@ $pageTitle = $reporte['titulo'];
             color: white;
             border-radius: 4px;
             margin-bottom: 1.5rem;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
         }
 
         .portada-icon {
@@ -123,6 +126,8 @@ $pageTitle = $reporte['titulo'];
             justify-content: center;
             margin: 0 auto 0.75rem;
             border: 2px solid rgba(255, 255, 255, 0.3);
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .portada-icon i {
@@ -252,6 +257,18 @@ $pageTitle = $reporte['titulo'];
         .badge {
             font-size: 0.8rem;
             padding: 0.35rem 0.75rem;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .area-icon {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .area-section {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
     </style>
 </head>
@@ -435,6 +452,43 @@ $pageTitle = $reporte['titulo'];
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Esperar a que todos los gráficos ApexCharts se rendericen antes de imprimir
+window.addEventListener('load', function() {
+    // Dar tiempo extra para que ApexCharts termine de renderizar
+    setTimeout(function() {
+        console.log('Página lista para imprimir');
+
+        // Marcar como lista para sistemas que usen automation
+        document.body.classList.add('ready-to-print');
+    }, 2000);
+});
+
+// Mejorar el comportamiento de window.print()
+window.addEventListener('beforeprint', function() {
+    console.log('Preparando para imprimir...');
+
+    // Forzar re-render de gráficos si es necesario
+    if (window.Apex && window.Apex.chart) {
+        try {
+            // ApexCharts tiene issues con print, forzar redraw
+            const charts = document.querySelectorAll('.apexcharts-canvas');
+            charts.forEach(chart => {
+                if (chart.style) {
+                    chart.style.display = 'block';
+                }
+            });
+        } catch (e) {
+            console.warn('Error al preparar gráficos:', e);
+        }
+    }
+});
+
+window.addEventListener('afterprint', function() {
+    console.log('Impresión completada');
+});
+</script>
 
 </body>
 </html>
