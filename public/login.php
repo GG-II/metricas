@@ -73,8 +73,8 @@ $pageTitle = 'Iniciar Sesión - Sistema de Métricas';
     <div class="container container-tight py-4">
         <div class="card card-md login-card">
             <div class="login-header">
-                <div class="login-brand-icon">
-                    <i class="ti ti-chart-bar"></i>
+                <div class="login-brand-logo">
+                    <img src="<?php echo baseUrl('/assets/images/logo_cooperativa.png'); ?>" alt="Logo Cooperativa La Inmaculada" class="login-logo-img">
                 </div>
                 <h2 class="mb-1">Sistema de Métricas</h2>
                 <p class="mb-0 opacity-75">Multi-Departamento</p>

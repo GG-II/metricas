@@ -168,6 +168,27 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.login-brand-logo {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-logo-img {
+    max-width: 280px;
+    width: 100%;
+    height: auto;
+    filter: brightness(0) invert(1);
+    /* Convierte el logo a blanco para que se vea sobre fondo azul */
+}
+
+@media (max-width: 576px) {
+    .login-logo-img {
+        max-width: 200px;
+    }
+}
+
 /* Forms */
 .form-control {
     background-color: var(--bg-surface);
