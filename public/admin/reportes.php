@@ -47,6 +47,9 @@ $pageTitle = 'Gestión de Reportes';
 require_once __DIR__ . '/../../views/layouts/header.php';
 ?>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
 /* Estilos para tabla en modo oscuro */
 [data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
@@ -69,38 +72,6 @@ require_once __DIR__ . '/../../views/layouts/header.php';
     <div class="page-body">
         <div class="container-xl">
 
-            <!-- Mensajes de éxito/error -->
-            <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <div class="d-flex">
-                    <div>
-                        <i class="ti ti-check icon alert-icon"></i>
-                    </div>
-                    <div>
-                        <h4 class="alert-title">¡Éxito!</h4>
-                        <div class="text-muted"><?php echo htmlspecialchars($_SESSION['success_message']); ?></div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <?php unset($_SESSION['success_message']); ?>
-            <?php endif; ?>
-
-            <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <div class="d-flex">
-                    <div>
-                        <i class="ti ti-alert-circle icon alert-icon"></i>
-                    </div>
-                    <div>
-                        <h4 class="alert-title">Error</h4>
-                        <div class="text-muted"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <?php unset($_SESSION['error_message']); ?>
-            <?php endif; ?>
 
             <!-- Header -->
             <div class="page-header mb-4">
@@ -403,19 +374,80 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 </div>
 
 <script>
-// Eliminar reporte
+// Mostrar mensajes de éxito/error con SweetAlert2
+<?php if (isset($_SESSION['success_message'])): ?>
+Swal.fire({
+    icon: 'success',
+    title: '¡Éxito!',
+    text: '<?php echo addslashes($_SESSION['success_message']); ?>',
+    showConfirmButton: true,
+    confirmButtonText: 'Entendido',
+    confirmButtonColor: '#16a34a',
+    timer: 3000,
+    timerProgressBar: true
+});
+<?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error_message'])): ?>
+Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: '<?php echo addslashes($_SESSION['error_message']); ?>',
+    showConfirmButton: true,
+    confirmButtonText: 'Cerrar',
+    confirmButtonColor: '#dc2626'
+});
+<?php unset($_SESSION['error_message']); ?>
+<?php endif; ?>
+
+// Eliminar reporte con SweetAlert2
 function eliminarReporte(id, titulo) {
-    const mensaje = '¿Estás seguro de que deseas eliminar este reporte?\n\n' +
-                   '📄 Reporte: "' + titulo + '"\n\n' +
-                   '⚠️ Esta acción no se puede deshacer.\n' +
-                   '❌ Se perderán todos los datos del reporte.';
+    Swal.fire({
+        title: '¿Eliminar este reporte?',
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <p style="margin-bottom: 15px;"><strong>📄 Reporte:</strong></p>
+                <p style="background: #f3f4f6; padding: 10px; border-radius: 4px; margin-bottom: 15px;">${titulo}</p>
+                <p style="color: #dc2626; margin-bottom: 5px;"><strong>⚠️ Advertencia:</strong></p>
+                <ul style="color: #666; font-size: 14px; margin-left: 20px;">
+                    <li>Esta acción no se puede deshacer</li>
+                    <li>Se perderán todos los datos del reporte</li>
+                    <li>No se podrá recuperar la información</li>
+                </ul>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="ti ti-trash me-1"></i> Sí, eliminar',
+        cancelButtonText: '<i class="ti ti-x me-1"></i> Cancelar',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Eliminando...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-    if (confirm(mensaje)) {
-        // Mostrar indicador de carga
-        document.body.style.cursor = 'wait';
-
-        window.location.href = 'reportes-delete.php?id=' + id;
-    }
+            // Redirigir a eliminar
+            window.location.href = 'reportes-delete.php?id=' + id;
+        }
+    });
 }
 
 // Actualizar lista al cambiar departamento en filtro
@@ -432,17 +464,32 @@ document.getElementById('btn-continuar-reporte')?.addEventListener('click', func
     const anio = document.getElementById('modal-anio').value;
 
     if (!departamentoId) {
-        alert('Por favor selecciona un departamento');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campo requerido',
+            text: 'Por favor selecciona un departamento',
+            confirmButtonColor: '#3b82f6'
+        });
         return;
     }
 
     if (!mes) {
-        alert('Por favor selecciona un mes');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campo requerido',
+            text: 'Por favor selecciona un mes',
+            confirmButtonColor: '#3b82f6'
+        });
         return;
     }
 
     if (!anio) {
-        alert('Por favor ingresa un año');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campo requerido',
+            text: 'Por favor ingresa un año',
+            confirmButtonColor: '#3b82f6'
+        });
         return;
     }
 
