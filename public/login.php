@@ -95,12 +95,12 @@ $pageTitle = 'Iniciar Sesión - Sistema de Métricas';
 
                 <form method="POST" autocomplete="off">
                     <div class="mb-3">
-                        <label class="form-label">Usuario</label>
+                        <label class="form-label">Usuario o Correo</label>
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="ti ti-user"></i>
                             </span>
-                            <input type="text" name="username" class="form-control" placeholder="Ingresa tu usuario" autocomplete="off" required autofocus value="<?php echo e($_POST['username'] ?? ''); ?>">
+                            <input type="text" name="username" class="form-control" placeholder="Ingresa tu usuario o correo" autocomplete="off" required autofocus value="<?php echo e($_POST['username'] ?? ''); ?>">
                         </div>
                     </div>
                     <div class="mb-4">

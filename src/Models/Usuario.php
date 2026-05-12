@@ -31,7 +31,7 @@ class Usuario extends Model {
     }
 
     /**
-     * Autenticar usuario
+     * Autenticar usuario (por username o email)
      */
     public function authenticate($username, $password) {
         $stmt = $this->db->prepare("
@@ -43,9 +43,9 @@ class Usuario extends Model {
             FROM {$this->table} u
             LEFT JOIN departamentos d ON u.departamento_id = d.id
             LEFT JOIN areas a ON u.area_id = a.id
-            WHERE u.username = ? AND u.activo = 1
+            WHERE (u.username = ? OR u.email = ?) AND u.activo = 1
         ");
-        $stmt->execute([$username]);
+        $stmt->execute([$username, $username]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
