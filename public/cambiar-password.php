@@ -6,53 +6,53 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Middleware\AuthMiddleware;
 use App\Models\Usuario;
 
-// Si ya está logueado, redirigir al dashboard
-AuthMiddleware::guest();
+// Debe estar autenticado
+if (!isset($_SESSION['user_id'])) {
+    redirect('/login.php');
+}
+
+$usuarioModel = new Usuario();
+$user = $usuarioModel->find($_SESSION['user_id']);
+
+// Si no tiene contraseña débil, redirigir al dashboard
+if (!isset($_SESSION['debe_cambiar_password'])) {
+    redirect('/index.php');
+}
 
 $error = '';
 $success = '';
 
-// Procesar login
+// Procesar cambio de contraseña
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = sanitize($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    csrf_validate();
 
-    if (empty($username) || empty($password)) {
+    $nueva = $_POST['password_nueva'] ?? '';
+    $confirmar = $_POST['password_confirmar'] ?? '';
+
+    // Validaciones
+    if (empty($nueva) || empty($confirmar)) {
         $error = 'Por favor completa todos los campos';
+    } elseif (strlen($nueva) < 6) {
+        $error = 'La contraseña debe tener al menos 6 caracteres';
+    } elseif ($nueva !== $confirmar) {
+        $error = 'Las contraseñas no coinciden';
+    } elseif (strtolower($nueva) === 'password') {
+        $error = 'No puedes usar "password" como contraseña. Elige una más segura';
     } else {
-        $usuarioModel = new Usuario();
-        $user = $usuarioModel->authenticate($username, $password);
+        // Actualizar contraseña
+        if ($usuarioModel->update($user['id'], ['password' => password_hash($nueva, PASSWORD_DEFAULT)])) {
+            // Limpiar flag de cambio forzado
+            unset($_SESSION['debe_cambiar_password']);
 
-        if ($user) {
-            // Login exitoso - Guardar en sesión
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_rol'] = $user['rol'];  // Cambiado: user_rol (sin 'e')
-            $_SESSION['user_nombre'] = $user['nombre'];  // Cambiado: user_nombre
-            $_SESSION['user_email'] = $user['email'] ?? '';
-            $_SESSION['user_departamento_id'] = $user['departamento_id'] ?? null;
-            $_SESSION['user_area_id'] = $user['area_id'] ?? null;
-            $_SESSION['user_avatar_icono'] = $user['avatar_icono'] ?? null;
-            $_SESSION['user_avatar_color'] = $user['avatar_color'] ?? null;
-            $_SESSION['user_tema'] = $user['tema'] ?? 'light';
-
-            // ✅ SEGURIDAD: Regenerar token CSRF después de login
-            // Previene ataques de session fixation
-            CsrfProtection::regenerateToken();
-
-            // 🔒 SEGURIDAD: Verificar si usa contraseña débil "password"
-            if (password_verify('password', $user['password'])) {
-                $_SESSION['debe_cambiar_password'] = true;
-                redirect('/cambiar-password.php');
-            } else {
-                redirect('/index.php');
-            }
+            setFlash('success', 'Contraseña actualizada exitosamente. Ahora puedes usar el sistema.');
+            redirect('/index.php');
         } else {
-            $error = 'Usuario o contraseña incorrectos';
+            $error = 'Error al actualizar la contraseña. Intenta nuevamente';
         }
     }
 }
 
-$pageTitle = 'Iniciar Sesión - Sistema de Métricas';
+$pageTitle = 'Cambiar Contraseña - Sistema de Métricas';
 ?>
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="light">
@@ -87,7 +87,17 @@ $pageTitle = 'Iniciar Sesión - Sistema de Métricas';
             </div>
 
             <div class="card-body p-4">
-                <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+                <div class="alert alert-warning mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-alert-triangle me-2"></i>
+                        <div>
+                            <h4 class="alert-title">Cambio de contraseña requerido</h4>
+                            <div class="text-muted">Por seguridad, debes cambiar tu contraseña antes de continuar.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="card-title text-center mb-4">Nueva Contraseña</h3>
 
                 <?php if ($error): ?>
                 <div class="alert alert-danger alert-dismissible" role="alert">
@@ -99,32 +109,46 @@ $pageTitle = 'Iniciar Sesión - Sistema de Métricas';
                 </div>
                 <?php endif; ?>
 
-                <form method="POST" autocomplete="off">
+                <form method="POST">
+                    <?php csrf_field(); ?>
+
                     <div class="mb-3">
-                        <label class="form-label">Usuario o Correo</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="ti ti-user"></i>
-                            </span>
-                            <input type="text" name="username" class="form-control" placeholder="Ingresa tu usuario o correo" autocomplete="off" required autofocus value="<?php echo e($_POST['username'] ?? ''); ?>">
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">Contraseña</label>
+                        <label class="form-label required">Nueva Contraseña</label>
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="ti ti-lock"></i>
                             </span>
-                            <input type="password" name="password" class="form-control" placeholder="Ingresa tu contraseña" autocomplete="off" required>
+                            <input type="password" name="password_nueva" class="form-control"
+                                   placeholder="Ingresa tu nueva contraseña" required minlength="6" autofocus>
+                        </div>
+                        <small class="form-hint">Mínimo 6 caracteres. No uses "password".</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label required">Confirmar Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ti ti-lock-check"></i>
+                            </span>
+                            <input type="password" name="password_confirmar" class="form-control"
+                                   placeholder="Confirma tu nueva contraseña" required minlength="6">
                         </div>
                     </div>
+
                     <div class="form-footer">
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="ti ti-login me-2"></i>
-                            Iniciar Sesión
+                            <i class="ti ti-check me-2"></i>
+                            Cambiar Contraseña
                         </button>
                     </div>
                 </form>
+
+                <div class="mt-3 text-center">
+                    <a href="<?php echo baseUrl('/logout.php'); ?>" class="text-muted">
+                        <i class="ti ti-logout me-1"></i>
+                        Cerrar Sesión
+                    </a>
+                </div>
             </div>
 
             <div class="card-footer text-center py-3">

@@ -126,8 +126,10 @@ require_once __DIR__ . '/../views/layouts/header.php';
                                 <i class="ti ti-<?php echo e($user['avatar_icono'] ?? 'user'); ?>" style="font-size: 3.5rem;"></i>
                             </span>
                             <h3 class="mb-1"><?php echo e($user['nombre']); ?></h3>
-                            <div class="text-muted mb-2">@<?php echo e($user['username']); ?></div>
-                            <?php if ($user['email']): ?>
+                            <?php if (!empty($user['username'])): ?>
+                                <div class="text-muted mb-2">@<?php echo e($user['username']); ?></div>
+                            <?php endif; ?>
+                            <?php if (!empty($user['email'])): ?>
                                 <div class="small text-muted mb-3">
                                     <i class="ti ti-mail me-1"></i>
                                     <?php echo e($user['email']); ?>
@@ -146,14 +148,14 @@ require_once __DIR__ . '/../views/layouts/header.php';
                                 <?php echo $rol_info['nombre']; ?>
                             </span>
 
-                            <?php if ($user['departamento_nombre']): ?>
+                            <?php if (!empty($user['departamento_nombre'])): ?>
                                 <div class="mt-3 pt-3 border-top">
                                     <div class="row">
                                         <div class="col">
                                             <div class="small text-muted">Departamento</div>
                                             <div class="fw-bold"><?php echo e($user['departamento_nombre']); ?></div>
                                         </div>
-                                        <?php if ($user['area_nombre']): ?>
+                                        <?php if (!empty($user['area_nombre'])): ?>
                                         <div class="col">
                                             <div class="small text-muted">Área</div>
                                             <div class="fw-bold"><?php echo e($user['area_nombre']); ?></div>
@@ -172,6 +174,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                         </div>
                         <div class="card-body">
                             <form method="POST">
+                                <?php csrf_field(); ?>
                                 <input type="hidden" name="action" value="cambiar_tema">
                                 <div class="form-label">Tema</div>
                                 <div class="btn-group w-100" role="group">
@@ -203,6 +206,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                         </div>
                         <div class="card-body">
                             <form method="POST">
+                                <?php csrf_field(); ?>
                                 <input type="hidden" name="action" value="actualizar_perfil">
 
                                 <div class="mb-3">
@@ -256,6 +260,7 @@ require_once __DIR__ . '/../views/layouts/header.php';
                         </div>
                         <div class="card-body">
                             <form method="POST">
+                                <?php csrf_field(); ?>
                                 <input type="hidden" name="action" value="cambiar_contrasena">
 
                                 <div class="mb-3">
